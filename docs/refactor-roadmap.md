@@ -110,6 +110,8 @@ This document tracks the migration from `old_project` into the new Bun + Vite + 
   room directory lifecycle, persistent-id registry, and external game-archive API client modules in `src/server/*`, each with dedicated tests.
 - Integrated migrated client services into app bootstrap:
   `createGameApp` now hydrates account/leaderboard/lobby service status through typed `AuthClient`, `PublicApiClient`, and `PublicLobbySocket` flows in the new UI shell.
+- Added first-party backend + PostgreSQL integration foundation:
+  `src/backend` now includes env config, Postgres pool, SQL migration tooling, health server bootstrap, repository contracts, and local dockerized Postgres setup.
 
 ### Pending
 

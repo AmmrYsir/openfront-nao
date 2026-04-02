@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: openfront_nao_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: openfront_nao
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - openfront_nao_pg_data:/var/lib/postgresql/data
+
+volumes:
+  openfront_nao_pg_data:
