@@ -85,6 +85,8 @@ This document tracks the migration from `old_project` into the new Bun + Vite + 
   per-player gameplay/diplomacy fields plus active alliance/request records, enabling feature work against structured state instead of aggregate counters only.
 - Added transport-ready app composition:
   optional websocket turn ingestion, validated server message contracts, UI transport controls, and simulation port abstraction in `createGameApp`.
+- Added execution-time intent rule validation with legacy cooldowns:
+  deterministic rejection of invalid/self-target/cooldown intents and worker snapshot diagnostics for rejected intent reasons.
 
 ### Pending
 

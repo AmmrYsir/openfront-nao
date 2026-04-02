@@ -64,8 +64,11 @@ export class Hud {
   private readonly intentsValue: HTMLElement;
   private readonly supportedIntentsValue: HTMLElement;
   private readonly unsupportedIntentsValue: HTMLElement;
+  private readonly rejectedIntentsValue: HTMLElement;
   private readonly hashValue: HTMLElement;
   private readonly lastIntentValue: HTMLElement;
+  private readonly lastRejectedIntentValue: HTMLElement;
+  private readonly lastRejectedReasonValue: HTMLElement;
   private readonly pausedValue: HTMLElement;
   private readonly spawnCountValue: HTMLElement;
   private readonly lastSpawnTileValue: HTMLElement;
@@ -104,6 +107,7 @@ export class Hud {
   private readonly projectedPlayersView: HTMLElement;
   private readonly projectedAlliancesView: HTMLElement;
   private readonly projectedPendingRequestsView: HTMLElement;
+  private readonly rejectedReasonCountsView: HTMLElement;
   private readonly queueTurnButton: HTMLButtonElement;
   private readonly queueTurnHandler: () => void;
 
@@ -128,8 +132,11 @@ export class Hud {
             <div><dt>Total Intents</dt><dd id="hud-total-intents">0</dd></div>
             <div><dt>Supported Intents</dt><dd id="hud-supported-intents">0</dd></div>
             <div><dt>Unsupported Intents</dt><dd id="hud-unsupported-intents">0</dd></div>
+            <div><dt>Rejected Intents</dt><dd id="hud-rejected-intents">0</dd></div>
             <div><dt>Last Hash</dt><dd id="hud-last-hash">n/a</dd></div>
             <div><dt>Last Intent</dt><dd id="hud-last-intent">n/a</dd></div>
+            <div><dt>Last Rejected Intent</dt><dd id="hud-last-rejected-intent">n/a</dd></div>
+            <div><dt>Last Reject Reason</dt><dd id="hud-last-rejected-reason">n/a</dd></div>
             <div><dt>Paused</dt><dd id="hud-paused">false</dd></div>
             <div><dt>Spawned Tiles</dt><dd id="hud-spawn-count">0</dd></div>
             <div><dt>Last Spawn Tile</dt><dd id="hud-last-spawn-tile">n/a</dd></div>
@@ -172,6 +179,8 @@ export class Hud {
           <pre id="hud-projected-alliances-view" class="hud-projection"></pre>
           <h2>Pending Alliance Requests</h2>
           <pre id="hud-projected-requests-view" class="hud-projection"></pre>
+          <h2>Rejected Intent Reasons</h2>
+          <pre id="hud-rejected-reasons-view" class="hud-projection"></pre>
         </section>
       </main>
     `;
@@ -188,8 +197,16 @@ export class Hud {
     const unsupportedIntentsValue = host.querySelector<HTMLElement>(
       "#hud-unsupported-intents",
     );
+    const rejectedIntentsValue =
+      host.querySelector<HTMLElement>("#hud-rejected-intents");
     const hashValue = host.querySelector<HTMLElement>("#hud-last-hash");
     const lastIntentValue = host.querySelector<HTMLElement>("#hud-last-intent");
+    const lastRejectedIntentValue = host.querySelector<HTMLElement>(
+      "#hud-last-rejected-intent",
+    );
+    const lastRejectedReasonValue = host.querySelector<HTMLElement>(
+      "#hud-last-rejected-reason",
+    );
     const pausedValue = host.querySelector<HTMLElement>("#hud-paused");
     const spawnCountValue = host.querySelector<HTMLElement>("#hud-spawn-count");
     const lastSpawnTileValue = host.querySelector<HTMLElement>(
@@ -278,6 +295,9 @@ export class Hud {
     const projectedPendingRequestsView = host.querySelector<HTMLElement>(
       "#hud-projected-requests-view",
     );
+    const rejectedReasonCountsView = host.querySelector<HTMLElement>(
+      "#hud-rejected-reasons-view",
+    );
     const queueTurnButton =
       host.querySelector<HTMLButtonElement>("#queue-turn-btn");
 
@@ -288,8 +308,11 @@ export class Hud {
       !intentsValue ||
       !supportedIntentsValue ||
       !unsupportedIntentsValue ||
+      !rejectedIntentsValue ||
       !hashValue ||
       !lastIntentValue ||
+      !lastRejectedIntentValue ||
+      !lastRejectedReasonValue ||
       !pausedValue ||
       !spawnCountValue ||
       !lastSpawnTileValue ||
@@ -328,6 +351,7 @@ export class Hud {
       !projectedPlayersView ||
       !projectedAlliancesView ||
       !projectedPendingRequestsView ||
+      !rejectedReasonCountsView ||
       !queueTurnButton
     ) {
       throw new Error("Failed to initialize HUD.");
@@ -339,8 +363,11 @@ export class Hud {
     this.intentsValue = intentsValue;
     this.supportedIntentsValue = supportedIntentsValue;
     this.unsupportedIntentsValue = unsupportedIntentsValue;
+    this.rejectedIntentsValue = rejectedIntentsValue;
     this.hashValue = hashValue;
     this.lastIntentValue = lastIntentValue;
+    this.lastRejectedIntentValue = lastRejectedIntentValue;
+    this.lastRejectedReasonValue = lastRejectedReasonValue;
     this.pausedValue = pausedValue;
     this.spawnCountValue = spawnCountValue;
     this.lastSpawnTileValue = lastSpawnTileValue;
@@ -379,6 +406,7 @@ export class Hud {
     this.projectedPlayersView = projectedPlayersView;
     this.projectedAlliancesView = projectedAlliancesView;
     this.projectedPendingRequestsView = projectedPendingRequestsView;
+    this.rejectedReasonCountsView = rejectedReasonCountsView;
     this.queueTurnButton = queueTurnButton;
     this.queueTurnHandler = onQueueTurnRequested;
     this.queueTurnButton.addEventListener("click", this.queueTurnHandler);
@@ -395,9 +423,16 @@ export class Hud {
     this.unsupportedIntentsValue.textContent = renderNumber(
       snapshot.unsupportedIntentCount,
     );
+    this.rejectedIntentsValue.textContent = renderNumber(
+      snapshot.rejectedIntentCount,
+    );
     this.hashValue.textContent =
       snapshot.lastHash === null ? "n/a" : String(snapshot.lastHash);
     this.lastIntentValue.textContent = snapshot.lastProcessedIntentType ?? "n/a";
+    this.lastRejectedIntentValue.textContent =
+      snapshot.lastRejectedIntentType ?? "n/a";
+    this.lastRejectedReasonValue.textContent =
+      snapshot.lastRejectedIntentReason ?? "n/a";
     this.pausedValue.textContent = String(snapshot.paused);
     this.spawnCountValue.textContent = renderNumber(snapshot.spawnedTileCount);
     this.lastSpawnTileValue.textContent =
@@ -492,6 +527,13 @@ export class Hud {
     this.projectedAlliancesView.textContent = formatProjectedAlliances(snapshot);
     this.projectedPendingRequestsView.textContent =
       formatPendingAllianceRequests(snapshot);
+    this.rejectedReasonCountsView.textContent =
+      Object.keys(snapshot.rejectedIntentReasonCounts).length === 0
+        ? "none"
+        : Object.entries(snapshot.rejectedIntentReasonCounts)
+            .sort((a, b) => b[1] - a[1])
+            .map(([reason, count]) => `${reason}: ${count}`)
+            .join("\n");
   }
 
   dispose(): void {

@@ -17,8 +17,11 @@ export interface GameSessionSnapshot {
   totalIntentCount: number;
   supportedIntentCount: number;
   unsupportedIntentCount: number;
+  rejectedIntentCount: number;
   lastHash: number | null;
   lastProcessedIntentType: string | null;
+  lastRejectedIntentType: string | null;
+  lastRejectedIntentReason: string | null;
   paused: boolean;
   spawnedTileCount: number;
   lastSpawnTile: number | null;
@@ -44,6 +47,7 @@ export interface GameSessionSnapshot {
   projectedPlayers: ProjectedPlayerSnapshot[];
   projectedAlliances: ProjectedAllianceSnapshot[];
   projectedPendingAllianceRequests: ProjectedAllianceRequestSnapshot[];
+  rejectedIntentReasonCounts: Record<string, number>;
   mapId: string | null;
   mapSize: string | null;
   mapLoaded: boolean;
@@ -63,8 +67,12 @@ export class GameSessionStore {
   private totalIntentCount = 0;
   private supportedIntentCount = 0;
   private unsupportedIntentCount = 0;
+  private rejectedIntentCount = 0;
   private lastHash: number | null = null;
   private lastProcessedIntentType: string | null = null;
+  private lastRejectedIntentType: string | null = null;
+  private lastRejectedIntentReason: string | null = null;
+  private rejectedIntentReasonCounts = new Map<string, number>();
 
   private paused = false;
   private spawnedTiles = new Set<number>();
@@ -119,6 +127,16 @@ export class GameSessionStore {
 
   markIntentUnsupported(): void {
     this.unsupportedIntentCount += 1;
+  }
+
+  markIntentRejected(intentType: string, reason: string): void {
+    this.rejectedIntentCount += 1;
+    this.lastRejectedIntentType = intentType;
+    this.lastRejectedIntentReason = reason;
+    this.rejectedIntentReasonCounts.set(
+      reason,
+      (this.rejectedIntentReasonCounts.get(reason) ?? 0) + 1,
+    );
   }
 
   recordCombatAction(): void {
@@ -296,8 +314,11 @@ export class GameSessionStore {
       totalIntentCount: this.totalIntentCount,
       supportedIntentCount: this.supportedIntentCount,
       unsupportedIntentCount: this.unsupportedIntentCount,
+      rejectedIntentCount: this.rejectedIntentCount,
       lastHash: this.lastHash,
       lastProcessedIntentType: this.lastProcessedIntentType,
+      lastRejectedIntentType: this.lastRejectedIntentType,
+      lastRejectedIntentReason: this.lastRejectedIntentReason,
       paused: this.paused,
       spawnedTileCount: this.spawnedTiles.size,
       lastSpawnTile: this.lastSpawnTile,
@@ -326,6 +347,9 @@ export class GameSessionStore {
       projectedPlayers,
       projectedAlliances,
       projectedPendingAllianceRequests,
+      rejectedIntentReasonCounts: Object.fromEntries(
+        this.rejectedIntentReasonCounts.entries(),
+      ),
       mapId: this.mapId,
       mapSize: this.mapSize,
       mapLoaded: this.mapLoaded,
