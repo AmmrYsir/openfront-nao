@@ -3,3 +3,7 @@ export {
   GameServerRuntime,
   type GameServerRuntimeOptions,
 } from "./GameServerRuntime";
+export {
+  DeterministicGameSession,
+  type DeterministicSessionBootstrap,
+} from "./DeterministicGameSession";
