@@ -9,6 +9,10 @@ import {
   type ProjectedAllianceSnapshot,
   type ProjectedPlayerSnapshot,
 } from "./ProjectedWorldState";
+import {
+  SimulationWorld,
+  type SimulationPlayerSnapshot,
+} from "../simulation/SimulationWorld";
 
 export interface GameSessionSnapshot {
   turnNumber: number;
@@ -48,6 +52,17 @@ export interface GameSessionSnapshot {
   projectedAlliances: ProjectedAllianceSnapshot[];
   projectedPendingAllianceRequests: ProjectedAllianceRequestSnapshot[];
   rejectedIntentReasonCounts: Record<string, number>;
+  simulationActivePlayerCount: number;
+  simulationEliminatedPlayerCount: number;
+  simulationOwnedTileCount: number;
+  simulationUnownedLandTileCount: number;
+  simulationBattlesResolved: number;
+  simulationTerritoryTransfers: number;
+  simulationRichestPlayerId: string | null;
+  simulationRichestPlayerGold: number;
+  simulationTopTerritoryPlayerId: string | null;
+  simulationTopTerritoryTileCount: number;
+  simulationPlayers: SimulationPlayerSnapshot[];
   mapId: string | null;
   mapSize: string | null;
   mapLoaded: boolean;
@@ -83,6 +98,7 @@ export class GameSessionStore {
   private spawnedTiles = new Set<number>();
   private lastSpawnTile: number | null = null;
   private projectedWorld = new ProjectedWorldState();
+  private simulationWorld = new SimulationWorld();
   private actionCounters = createActionCounters();
   private donatedGoldTotal = 0;
   private donatedTroopsTotal = 0;
@@ -190,10 +206,12 @@ export class GameSessionStore {
     this.spawnedTiles.add(tile);
     this.lastSpawnTile = tile;
     this.projectedWorld.recordSpawn(clientID, tile);
+    this.simulationWorld.spawn(clientID, tile);
   }
 
   setPlayerDisconnected(clientID: string, disconnected: boolean): void {
     this.projectedWorld.recordDisconnected(clientID, disconnected);
+    this.simulationWorld.setDisconnected(clientID, disconnected);
   }
 
   setEmbargo(playerID: string, targetID: string, active: boolean): void {
@@ -214,6 +232,7 @@ export class GameSessionStore {
     }
     this.donatedGoldTotal += Math.max(0, amount);
     this.projectedWorld.recordDonation(senderID, recipientID, "gold", amount);
+    this.simulationWorld.donateGold(senderID, recipientID, amount);
   }
 
   addDonatedTroops(
@@ -226,10 +245,12 @@ export class GameSessionStore {
     }
     this.donatedTroopsTotal += Math.max(0, amount);
     this.projectedWorld.recordDonation(senderID, recipientID, "troops", amount);
+    this.simulationWorld.donateTroops(senderID, recipientID, amount);
   }
 
   incrementBuiltUnit(playerID: string, unitType: UnitType): void {
     this.projectedWorld.recordBuildUnit(playerID, unitType);
+    this.simulationWorld.buildUnit(playerID, unitType);
   }
 
   setLastConfigPatchSize(size: number): void {
@@ -242,6 +263,7 @@ export class GameSessionStore {
     troops: number | null,
   ): void {
     this.projectedWorld.recordAttack(attackerID, targetID, troops);
+    this.simulationWorld.attack(attackerID, targetID, troops ?? 0);
   }
 
   recordCancelAttack(): void {
@@ -250,6 +272,7 @@ export class GameSessionStore {
 
   recordBoatAttack(attackerID: string, troops: number): void {
     this.projectedWorld.recordBoatAttack(attackerID, troops);
+    this.simulationWorld.boatAttack(attackerID, troops);
   }
 
   recordCancelBoat(): void {
@@ -286,6 +309,7 @@ export class GameSessionStore {
 
   recordKickPlayer(playerID: string): void {
     this.projectedWorld.recordKickPlayer(playerID);
+    this.simulationWorld.kickPlayer(playerID);
   }
 
   isMapTileValid(tile: number): boolean {
@@ -359,14 +383,17 @@ export class GameSessionStore {
       terrainMetrics.largestWaterComponentSize,
     );
     this.sampleWaterPathLength = terrainMetrics.sampleWaterPathLength;
+    this.simulationWorld.initializeTerrain(terrainData);
   }
 
   snapshot(): GameSessionSnapshot {
     const projectedSummary = this.projectedWorld.getSummary();
+    const simulationSummary = this.simulationWorld.getSummary();
     const projectedPlayers = this.projectedWorld.getPlayerSnapshots();
     const projectedAlliances = this.projectedWorld.getAllianceSnapshots();
     const projectedPendingAllianceRequests =
       this.projectedWorld.getPendingAllianceRequestSnapshots();
+    const simulationPlayers = this.simulationWorld.getPlayerSnapshots();
 
     return {
       turnNumber: this.turnNumber,
@@ -411,6 +438,17 @@ export class GameSessionStore {
       rejectedIntentReasonCounts: Object.fromEntries(
         this.rejectedIntentReasonCounts.entries(),
       ),
+      simulationActivePlayerCount: simulationSummary.activePlayerCount,
+      simulationEliminatedPlayerCount: simulationSummary.eliminatedPlayerCount,
+      simulationOwnedTileCount: simulationSummary.ownedTileCount,
+      simulationUnownedLandTileCount: simulationSummary.unownedLandTileCount,
+      simulationBattlesResolved: simulationSummary.battlesResolved,
+      simulationTerritoryTransfers: simulationSummary.territoryTransfers,
+      simulationRichestPlayerId: simulationSummary.richestPlayerId,
+      simulationRichestPlayerGold: simulationSummary.richestPlayerGold,
+      simulationTopTerritoryPlayerId: simulationSummary.topTerritoryPlayerId,
+      simulationTopTerritoryTileCount: simulationSummary.topTerritoryTileCount,
+      simulationPlayers,
       mapId: this.mapId,
       mapSize: this.mapSize,
       mapLoaded: this.mapLoaded,

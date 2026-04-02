@@ -57,6 +57,26 @@ function formatPendingAllianceRequests(snapshot: GameSessionSnapshot): string {
     .join("\n");
 }
 
+function formatSimulationPlayers(snapshot: GameSessionSnapshot): string {
+  if (snapshot.simulationPlayers.length === 0) {
+    return "none";
+  }
+
+  return snapshot.simulationPlayers
+    .map((player) => {
+      return [
+        player.id,
+        `tiles:${player.tileCount}`,
+        `troops:${renderNumber(player.troops)}`,
+        `gold:${renderNumber(player.gold)}`,
+        `built:${player.builtUnitTotal}`,
+        `kicked:${player.kicked ? "y" : "n"}`,
+        `disc:${player.disconnected ? "y" : "n"}`,
+      ].join(" | ");
+    })
+    .join("\n");
+}
+
 export class Hud {
   private readonly turnValue: HTMLElement;
   private readonly processedValue: HTMLElement;
@@ -109,9 +129,18 @@ export class Hud {
   private readonly blockedAllianceRequestCountValue: HTMLElement;
   private readonly blockedTargetCountValue: HTMLElement;
   private readonly allianceExtensionWindowCountValue: HTMLElement;
+  private readonly simActivePlayersValue: HTMLElement;
+  private readonly simEliminatedPlayersValue: HTMLElement;
+  private readonly simOwnedTilesValue: HTMLElement;
+  private readonly simUnownedTilesValue: HTMLElement;
+  private readonly simBattlesResolvedValue: HTMLElement;
+  private readonly simTerritoryTransfersValue: HTMLElement;
+  private readonly simRichestPlayerValue: HTMLElement;
+  private readonly simTopTerritoryPlayerValue: HTMLElement;
   private readonly projectedPlayersView: HTMLElement;
   private readonly projectedAlliancesView: HTMLElement;
   private readonly projectedPendingRequestsView: HTMLElement;
+  private readonly simulationPlayersView: HTMLElement;
   private readonly rejectedReasonCountsView: HTMLElement;
   private readonly queueTurnButton: HTMLButtonElement;
   private readonly queueTurnHandler: () => void;
@@ -182,6 +211,14 @@ export class Hud {
             <div><dt>Blocked Alliance Requests</dt><dd id="hud-projected-blocked-alliance-requests">0</dd></div>
             <div><dt>Blocked Target Intents</dt><dd id="hud-projected-blocked-targets">0</dd></div>
             <div><dt>Alliances Near Expiry</dt><dd id="hud-projected-alliance-extension-window">0</dd></div>
+            <div><dt>Sim Active Players</dt><dd id="hud-sim-active-players">0</dd></div>
+            <div><dt>Sim Eliminated Players</dt><dd id="hud-sim-eliminated-players">0</dd></div>
+            <div><dt>Sim Owned Tiles</dt><dd id="hud-sim-owned-tiles">0</dd></div>
+            <div><dt>Sim Unowned Land</dt><dd id="hud-sim-unowned-tiles">0</dd></div>
+            <div><dt>Sim Battles Resolved</dt><dd id="hud-sim-battles-resolved">0</dd></div>
+            <div><dt>Sim Territory Transfers</dt><dd id="hud-sim-territory-transfers">0</dd></div>
+            <div><dt>Sim Richest Player</dt><dd id="hud-sim-richest-player">n/a</dd></div>
+            <div><dt>Sim Top Territory</dt><dd id="hud-sim-top-territory-player">n/a</dd></div>
           </dl>
           <h2>Projected Players</h2>
           <pre id="hud-projected-players-view" class="hud-projection"></pre>
@@ -189,6 +226,8 @@ export class Hud {
           <pre id="hud-projected-alliances-view" class="hud-projection"></pre>
           <h2>Pending Alliance Requests</h2>
           <pre id="hud-projected-requests-view" class="hud-projection"></pre>
+          <h2>Simulation Players</h2>
+          <pre id="hud-simulation-players-view" class="hud-projection"></pre>
           <h2>Rejected Intent Reasons</h2>
           <pre id="hud-rejected-reasons-view" class="hud-projection"></pre>
         </section>
@@ -310,6 +349,29 @@ export class Hud {
     const allianceExtensionWindowCountValue = host.querySelector<HTMLElement>(
       "#hud-projected-alliance-extension-window",
     );
+    const simActivePlayersValue = host.querySelector<HTMLElement>(
+      "#hud-sim-active-players",
+    );
+    const simEliminatedPlayersValue = host.querySelector<HTMLElement>(
+      "#hud-sim-eliminated-players",
+    );
+    const simOwnedTilesValue =
+      host.querySelector<HTMLElement>("#hud-sim-owned-tiles");
+    const simUnownedTilesValue = host.querySelector<HTMLElement>(
+      "#hud-sim-unowned-tiles",
+    );
+    const simBattlesResolvedValue = host.querySelector<HTMLElement>(
+      "#hud-sim-battles-resolved",
+    );
+    const simTerritoryTransfersValue = host.querySelector<HTMLElement>(
+      "#hud-sim-territory-transfers",
+    );
+    const simRichestPlayerValue = host.querySelector<HTMLElement>(
+      "#hud-sim-richest-player",
+    );
+    const simTopTerritoryPlayerValue = host.querySelector<HTMLElement>(
+      "#hud-sim-top-territory-player",
+    );
     const projectedPlayersView = host.querySelector<HTMLElement>(
       "#hud-projected-players-view",
     );
@@ -318,6 +380,9 @@ export class Hud {
     );
     const projectedPendingRequestsView = host.querySelector<HTMLElement>(
       "#hud-projected-requests-view",
+    );
+    const simulationPlayersView = host.querySelector<HTMLElement>(
+      "#hud-simulation-players-view",
     );
     const rejectedReasonCountsView = host.querySelector<HTMLElement>(
       "#hud-rejected-reasons-view",
@@ -377,9 +442,18 @@ export class Hud {
       !blockedAllianceRequestCountValue ||
       !blockedTargetCountValue ||
       !allianceExtensionWindowCountValue ||
+      !simActivePlayersValue ||
+      !simEliminatedPlayersValue ||
+      !simOwnedTilesValue ||
+      !simUnownedTilesValue ||
+      !simBattlesResolvedValue ||
+      !simTerritoryTransfersValue ||
+      !simRichestPlayerValue ||
+      !simTopTerritoryPlayerValue ||
       !projectedPlayersView ||
       !projectedAlliancesView ||
       !projectedPendingRequestsView ||
+      !simulationPlayersView ||
       !rejectedReasonCountsView ||
       !queueTurnButton
     ) {
@@ -437,9 +511,18 @@ export class Hud {
     this.blockedAllianceRequestCountValue = blockedAllianceRequestCountValue;
     this.blockedTargetCountValue = blockedTargetCountValue;
     this.allianceExtensionWindowCountValue = allianceExtensionWindowCountValue;
+    this.simActivePlayersValue = simActivePlayersValue;
+    this.simEliminatedPlayersValue = simEliminatedPlayersValue;
+    this.simOwnedTilesValue = simOwnedTilesValue;
+    this.simUnownedTilesValue = simUnownedTilesValue;
+    this.simBattlesResolvedValue = simBattlesResolvedValue;
+    this.simTerritoryTransfersValue = simTerritoryTransfersValue;
+    this.simRichestPlayerValue = simRichestPlayerValue;
+    this.simTopTerritoryPlayerValue = simTopTerritoryPlayerValue;
     this.projectedPlayersView = projectedPlayersView;
     this.projectedAlliancesView = projectedAlliancesView;
     this.projectedPendingRequestsView = projectedPendingRequestsView;
+    this.simulationPlayersView = simulationPlayersView;
     this.rejectedReasonCountsView = rejectedReasonCountsView;
     this.queueTurnButton = queueTurnButton;
     this.queueTurnHandler = onQueueTurnRequested;
@@ -573,10 +656,37 @@ export class Hud {
     this.allianceExtensionWindowCountValue.textContent = renderNumber(
       snapshot.allianceInExtensionWindowCount,
     );
+    this.simActivePlayersValue.textContent = renderNumber(
+      snapshot.simulationActivePlayerCount,
+    );
+    this.simEliminatedPlayersValue.textContent = renderNumber(
+      snapshot.simulationEliminatedPlayerCount,
+    );
+    this.simOwnedTilesValue.textContent = renderNumber(
+      snapshot.simulationOwnedTileCount,
+    );
+    this.simUnownedTilesValue.textContent = renderNumber(
+      snapshot.simulationUnownedLandTileCount,
+    );
+    this.simBattlesResolvedValue.textContent = renderNumber(
+      snapshot.simulationBattlesResolved,
+    );
+    this.simTerritoryTransfersValue.textContent = renderNumber(
+      snapshot.simulationTerritoryTransfers,
+    );
+    this.simRichestPlayerValue.textContent =
+      snapshot.simulationRichestPlayerId === null
+        ? "n/a"
+        : `${snapshot.simulationRichestPlayerId} (${renderNumber(snapshot.simulationRichestPlayerGold)}g)`;
+    this.simTopTerritoryPlayerValue.textContent =
+      snapshot.simulationTopTerritoryPlayerId === null
+        ? "n/a"
+        : `${snapshot.simulationTopTerritoryPlayerId} (${renderNumber(snapshot.simulationTopTerritoryTileCount)} tiles)`;
     this.projectedPlayersView.textContent = formatProjectedPlayers(snapshot);
     this.projectedAlliancesView.textContent = formatProjectedAlliances(snapshot);
     this.projectedPendingRequestsView.textContent =
       formatPendingAllianceRequests(snapshot);
+    this.simulationPlayersView.textContent = formatSimulationPlayers(snapshot);
     this.rejectedReasonCountsView.textContent =
       Object.keys(snapshot.rejectedIntentReasonCounts).length === 0
         ? "none"

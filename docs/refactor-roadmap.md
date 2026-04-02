@@ -93,6 +93,8 @@ This document tracks the migration from `old_project` into the new Bun + Vite + 
   typed room/session intent queueing + deterministic turn flush runtime compatible with legacy message shapes.
 - Added automated migrated-runtime regression tests:
   `tests/intentRuleValidator.test.ts`, `tests/pathfinding.test.ts`, and `tests/serverMessages.test.ts`, wired via `bun run test`.
+- Added deterministic simulation-world domain state:
+  land-tile ownership, battle/territory transfer resolution, and player economy snapshots integrated into worker snapshots and HUD.
 
 ### Pending
 
