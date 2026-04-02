@@ -41,6 +41,46 @@ body {
   gap: 0.75rem;
 }
 
+.top-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.nav-menu-item {
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: #f1f7f6;
+  color: var(--ink);
+  padding: 0.4rem 0.7rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.nav-menu-item.active {
+  border-color: var(--accent);
+  background: #d8eceb;
+  color: #143536;
+}
+
+.page-panel {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.placeholder-panel {
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+  color: var(--ink-muted);
+  padding: 1rem;
+  font-size: 0.9rem;
+}
+
 .transport-panel {
   border: 1px solid var(--line);
   border-radius: 14px;

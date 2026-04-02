@@ -104,6 +104,8 @@ This document tracks the migration from `old_project` into the new Bun + Vite + 
   typed platform detection, API base resolution, JWT auth/session client, and public API client modules in `src/client/*` with regression tests.
 - Added migrated lobby/matchmaking transport services (non-UI):
   typed public lobby socket + matchmaking client transport modules in `src/client/lobby` and `src/client/matchmaking`, backed by new runtime server-config helpers and parsing tests.
+- Added migrated page-navigation shell:
+  `src/ui/navigation/PageRouter.ts` and updated `AppUiRoot` now provide page switching compatibility (`window.showPage`, `window.currentPageId`) with decoupled navigation logic.
 
 ### Pending
 
