@@ -64,6 +64,8 @@ This document tracks the migration from `old_project` into the new Bun + Vite + 
 - Added map runtime config and worker bootstrap map loading against copied legacy assets.
 - Added deterministic projected world-state transitions for key gameplay domains:
   spawn, attack/boat queues, alliance request/formation/break/extension, embargo edges, donations, unit build counts, and moderation flags.
+- Added legacy-timing diplomacy lifecycle in projected simulation:
+  target cooldown/duration, alliance request cooldown/expiry, alliance expiry/renewal windows, and deterministic blocked/expired counters surfaced in worker snapshots.
 
 ### Pending
 

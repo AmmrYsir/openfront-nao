@@ -31,6 +31,11 @@ export interface GameSessionSnapshot {
   pendingAttackCount: number;
   pendingBoatAttackCount: number;
   kickedPlayerCount: number;
+  expiredAllianceCount: number;
+  expiredAllianceRequestCount: number;
+  blockedAllianceRequestCount: number;
+  blockedTargetCount: number;
+  allianceInExtensionWindowCount: number;
   mapId: string | null;
   mapSize: string | null;
   mapLoaded: boolean;
@@ -75,6 +80,10 @@ export class GameSessionStore {
     this.pendingTurns.push(turn);
   }
 
+  beginTurn(turnNumber: number): void {
+    this.projectedWorld.setCurrentTick(turnNumber);
+  }
+
   hasPendingTurns(): boolean {
     return this.pendingTurns.length > 0;
   }
@@ -93,6 +102,7 @@ export class GameSessionStore {
       turn.intents.length > 0
         ? turn.intents[turn.intents.length - 1].type
         : this.lastProcessedIntentType;
+    this.projectedWorld.setCurrentTick(this.turnNumber);
   }
 
   markIntentSupported(): void {
@@ -295,6 +305,12 @@ export class GameSessionStore {
       pendingAttackCount: projectedSummary.pendingAttackCount,
       pendingBoatAttackCount: projectedSummary.pendingBoatAttackCount,
       kickedPlayerCount: projectedSummary.kickedPlayerCount,
+      expiredAllianceCount: projectedSummary.expiredAllianceCount,
+      expiredAllianceRequestCount: projectedSummary.expiredAllianceRequestCount,
+      blockedAllianceRequestCount: projectedSummary.blockedAllianceRequestCount,
+      blockedTargetCount: projectedSummary.blockedTargetCount,
+      allianceInExtensionWindowCount:
+        projectedSummary.allianceInExtensionWindowCount,
       mapId: this.mapId,
       mapSize: this.mapSize,
       mapLoaded: this.mapLoaded,

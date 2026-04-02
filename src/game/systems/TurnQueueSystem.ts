@@ -26,6 +26,7 @@ export class TurnQueueSystem {
         break;
       }
 
+      this.store.beginTurn(turn.turnNumber);
       this.options.applyTurn(turn);
       this.store.markTurnProcessed(turn);
       processedTurns += 1;

@@ -40,6 +40,11 @@ export class Hud {
   private readonly pendingAttackCountValue: HTMLElement;
   private readonly pendingBoatAttackCountValue: HTMLElement;
   private readonly kickedPlayerCountValue: HTMLElement;
+  private readonly expiredAllianceCountValue: HTMLElement;
+  private readonly expiredAllianceRequestCountValue: HTMLElement;
+  private readonly blockedAllianceRequestCountValue: HTMLElement;
+  private readonly blockedTargetCountValue: HTMLElement;
+  private readonly allianceExtensionWindowCountValue: HTMLElement;
   private readonly queueTurnButton: HTMLButtonElement;
   private readonly queueTurnHandler: () => void;
 
@@ -96,6 +101,11 @@ export class Hud {
             <div><dt>Pending Ground Attacks</dt><dd id="hud-projected-attacks">0</dd></div>
             <div><dt>Pending Boat Attacks</dt><dd id="hud-projected-boat-attacks">0</dd></div>
             <div><dt>Kicked Players</dt><dd id="hud-projected-kicked">0</dd></div>
+            <div><dt>Expired Alliances</dt><dd id="hud-projected-expired-alliances">0</dd></div>
+            <div><dt>Expired Alliance Requests</dt><dd id="hud-projected-expired-alliance-requests">0</dd></div>
+            <div><dt>Blocked Alliance Requests</dt><dd id="hud-projected-blocked-alliance-requests">0</dd></div>
+            <div><dt>Blocked Target Intents</dt><dd id="hud-projected-blocked-targets">0</dd></div>
+            <div><dt>Alliances Near Expiry</dt><dd id="hud-projected-alliance-extension-window">0</dd></div>
           </dl>
         </section>
       </main>
@@ -179,6 +189,21 @@ export class Hud {
     );
     const kickedPlayerCountValue =
       host.querySelector<HTMLElement>("#hud-projected-kicked");
+    const expiredAllianceCountValue = host.querySelector<HTMLElement>(
+      "#hud-projected-expired-alliances",
+    );
+    const expiredAllianceRequestCountValue = host.querySelector<HTMLElement>(
+      "#hud-projected-expired-alliance-requests",
+    );
+    const blockedAllianceRequestCountValue = host.querySelector<HTMLElement>(
+      "#hud-projected-blocked-alliance-requests",
+    );
+    const blockedTargetCountValue = host.querySelector<HTMLElement>(
+      "#hud-projected-blocked-targets",
+    );
+    const allianceExtensionWindowCountValue = host.querySelector<HTMLElement>(
+      "#hud-projected-alliance-extension-window",
+    );
     const queueTurnButton =
       host.querySelector<HTMLButtonElement>("#queue-turn-btn");
 
@@ -221,6 +246,11 @@ export class Hud {
       !pendingAttackCountValue ||
       !pendingBoatAttackCountValue ||
       !kickedPlayerCountValue ||
+      !expiredAllianceCountValue ||
+      !expiredAllianceRequestCountValue ||
+      !blockedAllianceRequestCountValue ||
+      !blockedTargetCountValue ||
+      !allianceExtensionWindowCountValue ||
       !queueTurnButton
     ) {
       throw new Error("Failed to initialize HUD.");
@@ -264,6 +294,11 @@ export class Hud {
     this.pendingAttackCountValue = pendingAttackCountValue;
     this.pendingBoatAttackCountValue = pendingBoatAttackCountValue;
     this.kickedPlayerCountValue = kickedPlayerCountValue;
+    this.expiredAllianceCountValue = expiredAllianceCountValue;
+    this.expiredAllianceRequestCountValue = expiredAllianceRequestCountValue;
+    this.blockedAllianceRequestCountValue = blockedAllianceRequestCountValue;
+    this.blockedTargetCountValue = blockedTargetCountValue;
+    this.allianceExtensionWindowCountValue = allianceExtensionWindowCountValue;
     this.queueTurnButton = queueTurnButton;
     this.queueTurnHandler = onQueueTurnRequested;
     this.queueTurnButton.addEventListener("click", this.queueTurnHandler);
@@ -357,6 +392,21 @@ export class Hud {
     );
     this.kickedPlayerCountValue.textContent = renderNumber(
       snapshot.kickedPlayerCount,
+    );
+    this.expiredAllianceCountValue.textContent = renderNumber(
+      snapshot.expiredAllianceCount,
+    );
+    this.expiredAllianceRequestCountValue.textContent = renderNumber(
+      snapshot.expiredAllianceRequestCount,
+    );
+    this.blockedAllianceRequestCountValue.textContent = renderNumber(
+      snapshot.blockedAllianceRequestCount,
+    );
+    this.blockedTargetCountValue.textContent = renderNumber(
+      snapshot.blockedTargetCount,
+    );
+    this.allianceExtensionWindowCountValue.textContent = renderNumber(
+      snapshot.allianceInExtensionWindowCount,
     );
   }
 
