@@ -35,6 +35,52 @@ body {
   place-items: center;
 }
 
+.ui-root {
+  width: min(760px, 100%);
+  display: grid;
+  gap: 0.75rem;
+}
+
+.transport-panel {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+  padding: 0.75rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.transport-title {
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-muted);
+}
+
+.transport-status {
+  font-size: 0.9rem;
+}
+
+.transport-controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.transport-controls button {
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: #f1f7f6;
+  color: var(--ink);
+  padding: 0.45rem 0.7rem;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.transport-controls button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 .app-shell {
   width: min(760px, 100%);
 }

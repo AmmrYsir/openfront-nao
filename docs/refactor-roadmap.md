@@ -50,6 +50,21 @@ This document tracks the migration from `old_project` into the new Bun + Vite + 
   - `src/game/maps/GameMapLoader.ts`
   - `src/game/maps/FetchGameMapLoader.ts`
   - `src/game/maps/TerrainMapLoader.ts`
+- Map bootstrap service + URL config resolver:
+  - `src/game/maps/MapBootstrapService.ts`
+  - `src/game/maps/MapConfigResolver.ts`
+- Simulation/client ports and worker message validation:
+  - `src/core/ports/SimulationClient.ts`
+  - `src/game/worker/messageSchemas.ts`
+- Multiplayer transport schema + adapter:
+  - `src/game/network/serverMessages.ts`
+  - `src/game/network/TurnTransport.ts`
+  - `src/game/network/TurnTransportResolver.ts`
+  - `src/game/network/WebSocketTurnTransport.ts`
+- UI composition root around HUD/runtime controls:
+  - `src/ui/AppUiRoot.ts`
+- Legacy dependency guard:
+  - `scripts/check-old-project-imports.mjs` (`bun run check:legacy-deps`)
 
 ### In Progress
 
@@ -68,15 +83,12 @@ This document tracks the migration from `old_project` into the new Bun + Vite + 
   target cooldown/duration, alliance request cooldown/expiry, alliance expiry/renewal windows, and deterministic blocked/expired counters surfaced in worker snapshots.
 - Added typed projected domain snapshots in worker state:
   per-player gameplay/diplomacy fields plus active alliance/request records, enabling feature work against structured state instead of aggregate counters only.
+- Added transport-ready app composition:
+  optional websocket turn ingestion, validated server message contracts, UI transport controls, and simulation port abstraction in `createGameApp`.
 
 ### Pending
 
-- Move legacy map loading pipeline (`GameMapLoader`, `TerrainMapLoader`) into `src/game/maps`.
-- Migrate and split `ExecutionManager` and execution classes into grouped systems.
-- Replace cross-layer dependencies (`client -> core` and `core -> client`) with domain ports.
-- Introduce UI composition root for overlays/HUD/menus.
-- Migrate multiplayer transport and server message schema handling.
-- Final removal of `old_project` gameplay dependencies.
+- Remaining work is now feature migration and gameplay parity hardening, not structural scaffolding.
 
 ## File-by-File Migration Order
 

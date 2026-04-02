@@ -3,12 +3,8 @@ import { GameSessionStore } from "../state/GameSessionStore";
 import { TurnQueueSystem } from "../systems/TurnQueueSystem";
 import { parseTurn } from "../contracts/intentSchemas";
 import { IntentExecutionEngine } from "../execution/IntentExecutionEngine";
-import {
-  LEGACY_MAPS_ROOT,
-  legacyMapUrl,
-} from "../../core/assets/legacyAssets";
-import { FetchGameMapLoader } from "../maps/FetchGameMapLoader";
-import { loadTerrainMap } from "../maps/TerrainMapLoader";
+import { bootstrapMapRuntime } from "../maps/MapBootstrapService";
+import { parseMainToWorkerMessage } from "./messageSchemas";
 
 const ctx: Worker = self as unknown as Worker;
 const store = new GameSessionStore();
@@ -72,31 +68,22 @@ async function drain(): Promise<void> {
   }
 }
 
-function createLegacyMapLoader(): FetchGameMapLoader {
-  return new FetchGameMapLoader((path) => legacyMapUrl(path));
-}
-
 async function handleMessage(message: MainToWorkerMessage): Promise<void> {
   switch (message.type) {
     case "init": {
-      const mapLoader = createLegacyMapLoader();
-      const terrainMap = await loadTerrainMap(
-        message.mapConfig.mapId,
-        message.mapConfig.mapSize,
-        mapLoader,
-      );
+      const mapBootstrap = await bootstrapMapRuntime(message.mapConfig);
 
       store.setMapBootstrap(
-        message.mapConfig.mapId,
-        message.mapConfig.mapSize,
-        `/${LEGACY_MAPS_ROOT}`,
+        mapBootstrap.mapId,
+        mapBootstrap.mapSize,
+        mapBootstrap.mapSourcePath,
         {
-          mapWidth: terrainMap.gameMap.width,
-          mapHeight: terrainMap.gameMap.height,
-          miniMapWidth: terrainMap.miniGameMap.width,
-          miniMapHeight: terrainMap.miniGameMap.height,
+          mapWidth: mapBootstrap.mapWidth,
+          mapHeight: mapBootstrap.mapHeight,
+          miniMapWidth: mapBootstrap.miniMapWidth,
+          miniMapHeight: mapBootstrap.miniMapHeight,
         },
-        terrainMap.nations.length,
+        mapBootstrap.nationCount,
       );
 
       initialized = true;
@@ -135,8 +122,8 @@ async function handleMessage(message: MainToWorkerMessage): Promise<void> {
   }
 }
 
-ctx.addEventListener("message", (event: MessageEvent<MainToWorkerMessage>) => {
-  void handleMessage(event.data).catch((error: unknown) => {
+ctx.addEventListener("message", (event: MessageEvent<unknown>) => {
+  void handleMessage(parseMainToWorkerMessage(event.data)).catch((error: unknown) => {
     const errorMessage =
       error instanceof Error ? `${error.name}: ${error.message}` : String(error);
     console.error(`Simulation worker message failure: ${errorMessage}`);

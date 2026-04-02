@@ -1,3 +1,4 @@
+import { z } from "zod";
 import type { MapId } from "./GameMapLoader";
 import type { MapSize } from "./TerrainMapLoader";
 
@@ -10,3 +11,5 @@ export const DEFAULT_MAP_RUNTIME_CONFIG: MapRuntimeConfig = {
   mapId: "World",
   mapSize: "normal",
 };
+
+export const MapSizeSchema = z.union([z.literal("normal"), z.literal("compact")]);

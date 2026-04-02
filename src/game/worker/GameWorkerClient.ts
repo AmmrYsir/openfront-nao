@@ -1,3 +1,4 @@
+import type { SimulationClient } from "../../core/ports/SimulationClient";
 import { createRequestId } from "../../utils/id";
 import type { Turn } from "../contracts/turn";
 import {
@@ -6,6 +7,7 @@ import {
 } from "../maps/MapRuntimeConfig";
 import type { GameSessionSnapshot } from "../state/GameSessionStore";
 import type { WorkerToMainMessage } from "./messages";
+import { parseWorkerToMainMessage } from "./messageSchemas";
 
 interface PendingRequest {
   resolve: (message: WorkerToMainMessage) => void;
@@ -18,7 +20,7 @@ export interface GameWorkerClientOptions {
   mapConfig?: MapRuntimeConfig;
 }
 
-export class GameWorkerClient {
+export class GameWorkerClient implements SimulationClient {
   private readonly worker: Worker;
   private readonly pending = new Map<string, PendingRequest>();
   private onSnapshot?: (snapshot: GameSessionSnapshot) => void;
@@ -122,9 +124,18 @@ export class GameWorkerClient {
   }
 
   private readonly handleMessage = (
-    event: MessageEvent<WorkerToMainMessage>,
+    event: MessageEvent<unknown>,
   ): void => {
-    const message = event.data;
+    let message: WorkerToMainMessage;
+    try {
+      const parsed = parseWorkerToMainMessage(event.data);
+      message = parsed as WorkerToMainMessage;
+    } catch (error: unknown) {
+      const text =
+        error instanceof Error ? error.message : "Unknown worker message parse error.";
+      console.error(`Dropped invalid worker message: ${text}`);
+      return;
+    }
 
     if (message.type === "snapshot") {
       this.onSnapshot?.(message.snapshot);
