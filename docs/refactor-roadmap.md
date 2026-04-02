@@ -91,6 +91,8 @@ This document tracks the migration from `old_project` into the new Bun + Vite + 
   connected-component analysis and shortest-path utilities integrated at map bootstrap, with map-topology metrics and map-aware tile validation in intent execution.
 - Added server-side migration scaffold in `src/server`:
   typed room/session intent queueing + deterministic turn flush runtime compatible with legacy message shapes.
+- Added automated migrated-runtime regression tests:
+  `tests/intentRuleValidator.test.ts`, `tests/pathfinding.test.ts`, and `tests/serverMessages.test.ts`, wired via `bun run test`.
 
 ### Pending
 

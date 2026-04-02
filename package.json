@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "check:legacy-deps": "node scripts/check-old-project-imports.mjs",
+    "test": "bun test tests/intentRuleValidator.test.ts tests/pathfinding.test.ts tests/serverMessages.test.ts",
     "build": "bun run check:legacy-deps && tsc && vite build",
     "preview": "vite preview"
   },
