@@ -26,6 +26,7 @@ interface PagePanelDefinition {
 }
 
 const NAV_ITEMS: ReadonlyArray<NavItemDefinition> = [
+  { pageId: "page-classic", label: "Classic" },
   { pageId: "page-play", label: "Play" },
   { pageId: "page-solo", label: "Solo" },
   { pageId: "page-account", label: "Account" },
@@ -37,6 +38,12 @@ const NAV_ITEMS: ReadonlyArray<NavItemDefinition> = [
 ];
 
 const CONTENT_PANELS: ReadonlyArray<PagePanelDefinition> = [
+  {
+    pageId: "page-classic",
+    statusId: "classic-status",
+    statusLabel: "Classic status",
+    hostId: "classic-panel-host",
+  },
   {
     pageId: "page-solo",
     statusId: "solo-status",
@@ -111,6 +118,7 @@ export class AppUiRoot {
   private readonly root: HTMLElement;
   private readonly hudMount: HTMLElement;
   private readonly statusValue: HTMLElement;
+  private readonly classicStatusValue: HTMLElement | null;
   private readonly soloStatusValue: HTMLElement | null;
   private readonly accountStatusValue: HTMLElement | null;
   private readonly lobbyStatusValue: HTMLElement | null;
@@ -118,6 +126,7 @@ export class AppUiRoot {
   private readonly settingsStatusValue: HTMLElement | null;
   private readonly newsStatusValue: HTMLElement | null;
   private readonly helpStatusValue: HTMLElement | null;
+  private readonly classicPanelHost: HTMLElement | null;
   private readonly soloPanelHost: HTMLElement | null;
   private readonly accountPanelHost: HTMLElement | null;
   private readonly lobbyPanelHost: HTMLElement | null;
@@ -218,6 +227,7 @@ export class AppUiRoot {
 
     const hudMount = host.querySelector<HTMLElement>("#hud-mount");
     const statusValue = host.querySelector<HTMLElement>("#transport-status");
+    const classicStatusValue = host.querySelector<HTMLElement>("#classic-status");
     const soloStatusValue = host.querySelector<HTMLElement>("#solo-status");
     const accountStatusValue = host.querySelector<HTMLElement>("#account-status");
     const lobbyStatusValue = host.querySelector<HTMLElement>("#lobby-status");
@@ -227,6 +237,7 @@ export class AppUiRoot {
       host.querySelector<HTMLElement>("#settings-status");
     const newsStatusValue = host.querySelector<HTMLElement>("#news-status");
     const helpStatusValue = host.querySelector<HTMLElement>("#help-status");
+    const classicPanelHost = host.querySelector<HTMLElement>("#classic-panel-host");
     const soloPanelHost = host.querySelector<HTMLElement>("#solo-panel-host");
     const accountPanelHost =
       host.querySelector<HTMLElement>("#account-panel-host");
@@ -255,6 +266,7 @@ export class AppUiRoot {
 
     this.hudMount = hudMount;
     this.statusValue = statusValue;
+    this.classicStatusValue = classicStatusValue;
     this.soloStatusValue = soloStatusValue;
     this.accountStatusValue = accountStatusValue;
     this.lobbyStatusValue = lobbyStatusValue;
@@ -262,6 +274,7 @@ export class AppUiRoot {
     this.settingsStatusValue = settingsStatusValue;
     this.newsStatusValue = newsStatusValue;
     this.helpStatusValue = helpStatusValue;
+    this.classicPanelHost = classicPanelHost;
     this.soloPanelHost = soloPanelHost;
     this.accountPanelHost = accountPanelHost;
     this.lobbyPanelHost = lobbyPanelHost;
@@ -316,6 +329,13 @@ export class AppUiRoot {
     this.statusValue.textContent = text;
   }
 
+  setClassicStatus(text: string): void {
+    if (!this.classicStatusValue) {
+      return;
+    }
+    this.classicStatusValue.textContent = text;
+  }
+
   setAccountStatus(text: string): void {
     if (!this.accountStatusValue) {
       return;
@@ -363,6 +383,13 @@ export class AppUiRoot {
       return;
     }
     this.helpStatusValue.textContent = text;
+  }
+
+  getClassicPanelHost(): HTMLElement {
+    if (!this.classicPanelHost) {
+      throw new Error("Missing classic panel host.");
+    }
+    return this.classicPanelHost;
   }
 
   getSoloPanelHost(): HTMLElement {

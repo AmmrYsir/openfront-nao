@@ -45,6 +45,13 @@ This plan migrates the remaining `old_project` gameplay/frontend stack into the 
 - Port high-priority gameplay layers (events, controls, sidebars, replay hooks).
 - Keep performance budget with deterministic loop boundaries.
 
+### Phase 2A Bridge Milestone (Completed)
+
+- Added `Classic` page in the new shell with embedded legacy gameplay UI iframe.
+- Added compatibility bundling pipeline (`npm run classic:build`) to generate `public/classic/*` from `old_project/static/*`.
+- Added cross-repo validation command (`npm run test:all`) so new-runtime and legacy-runtime tests run together when legacy source is available.
+- Added fallback behavior so migrated repo remains runnable even when `old_project/` is not present but `public/classic` is committed.
+
 ### Exit Criteria
 
 - New runtime has playable in-game UI parity for core actions.
@@ -102,5 +109,6 @@ This plan migrates the remaining `old_project` gameplay/frontend stack into the 
 ## Current Status
 
 - Phase 0: completed
-- Phase 1: in progress
-- Phase 2-5: pending
+- Phase 1: completed
+- Phase 2: in progress (bridge milestone complete, native renderer parity pending)
+- Phase 3-5: pending

@@ -22,6 +22,7 @@ import { UserPreferencesStore } from "../../client/settings/UserPreferencesStore
 import { MultiTabSessionGuard } from "../../client/session/MultiTabSessionGuard";
 import {
   AccountPageController,
+  ClassicPageController,
   HelpPageController,
   LeaderboardPageController,
   LobbyPageController,
@@ -113,6 +114,10 @@ export function createGameApp(host: HTMLElement): GameApp {
     authClient,
     apiClient,
     onStatus: (status) => uiRoot.setAccountStatus(status),
+  });
+  const classicPageController = new ClassicPageController({
+    host: uiRoot.getClassicPanelHost(),
+    onStatus: (status) => uiRoot.setClassicStatus(status),
   });
   const soloPageController = new SoloPageController({
     host: uiRoot.getSoloPanelHost(),
@@ -232,6 +237,7 @@ export function createGameApp(host: HTMLElement): GameApp {
   }
 
   async function hydrateClientServices(): Promise<void> {
+    await classicPageController.hydrate();
     await soloPageController.hydrate();
     await accountPageController.hydrate();
     await leaderboardPageController.hydrate();
@@ -256,6 +262,7 @@ export function createGameApp(host: HTMLElement): GameApp {
       void ensureWorkerInitialized().then(() => workerClient.getSnapshot());
       void hydrateClientServices().catch(() => {
         uiRoot.setAccountStatus("Account service error.");
+        uiRoot.setClassicStatus("Classic UI service error.");
         uiRoot.setSoloStatus("Solo runtime service error.");
         uiRoot.setLobbyStatus("Lobby service error.");
         uiRoot.setLeaderboardStatus("Leaderboard service error.");
@@ -276,6 +283,7 @@ export function createGameApp(host: HTMLElement): GameApp {
         soloAutoQueueTimer = null;
       }
       lobbySocket.stop();
+      classicPageController.dispose();
       soloPageController.dispose();
       accountPageController.dispose();
       lobbyPageController?.dispose();

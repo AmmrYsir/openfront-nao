@@ -1,4 +1,5 @@
 export { AccountPageController } from "./AccountPageController";
+export { ClassicPageController } from "./ClassicPageController";
 export { HelpPageController } from "./HelpPageController";
 export { LeaderboardPageController } from "./LeaderboardPageController";
 export { LobbyPageController } from "./LobbyPageController";

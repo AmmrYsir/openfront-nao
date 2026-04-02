@@ -130,13 +130,15 @@ This document tracks the migration from `old_project` into the new Bun + Vite + 
   the new UI shell now includes dedicated News + Help pages with migrated changelog and troubleshooting/keybind guidance, replacing modal-only legacy coupling.
 - Added phase-1 solo runtime control surface:
   new `SoloPageController` provides start/stop auto-turn queue and manual turn queueing against the deterministic worker, enabling local solo runtime progression while full old singleplayer parity is migrated.
+- Added phase-2 classic frontend parity bridge:
+  `ClassicPageController` embeds the full legacy game UI from `public/classic/index.html` inside the new shell, with dedicated build/test scripts (`classic:build`, `classic:test`, `test:all`, `build:all`) and compatibility rewrite logic for static asset paths.
 
 ### Pending
 
 - Singleplayer gameplay flow parity is not yet migrated:
   - `GameModeSelector` + `SinglePlayerModal` surface
   - local solo bootstrap path (`LocalServer`/singleplayer archive route integration)
-  - in-game renderer/layer parity for full old frontend playability
+  - native in-game renderer/layer parity (classic bridge provides fallback playability in the meantime)
 - Legacy commerce/cosmetic purchase surface (`Store`, payment checkout UI) is intentionally deferred from this core migration pass.
 - Ads/InGamePromo behavior remains untouched per migration constraints.
 

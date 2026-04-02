@@ -23,47 +23,74 @@ function folderCount(path) {
   return existsSync(path) ? countFiles(path, ".ts") : 0;
 }
 
+function safeCount(path, extension) {
+  return existsSync(path) ? countFiles(path, extension) : 0;
+}
+
 const oldSrcTs = folderCount(resolve(repoRoot, "old_project", "src"));
 const newSrcTs = folderCount(resolve(repoRoot, "src"));
-const oldTests = countFiles(resolve(repoRoot, "old_project", "tests"), ".test.ts");
-const newTests = countFiles(resolve(repoRoot, "tests"), ".test.ts");
+const oldTests = safeCount(resolve(repoRoot, "old_project", "tests"), ".test.ts");
+const newTests = safeCount(resolve(repoRoot, "tests"), ".test.ts");
 
 const parityChecks = [
   {
     capability: "Singleplayer Modal",
     oldPath: "old_project/src/client/SinglePlayerModal.ts",
     newPath: "src/ui/pages/SinglePlayerModal.ts",
+    bridgePaths: ["src/ui/pages/ClassicPageController.ts", "public/classic/index.html"],
   },
   {
     capability: "Game Mode Selector",
     oldPath: "old_project/src/client/GameModeSelector.ts",
     newPath: "src/ui/pages/GameModeSelector.ts",
+    bridgePaths: ["src/ui/pages/ClassicPageController.ts", "public/classic/index.html"],
   },
   {
     capability: "Local Solo Server Flow",
     oldPath: "old_project/src/client/LocalServer.ts",
     newPath: "src/client/solo/LocalServer.ts",
+    bridgePaths: ["src/ui/pages/ClassicPageController.ts", "public/classic/index.html"],
   },
   {
     capability: "Canvas Renderer",
     oldPath: "old_project/src/client/graphics/GameRenderer.ts",
     newPath: "src/ui/runtime/GameRenderer.ts",
+    bridgePaths: ["src/ui/pages/ClassicPageController.ts", "public/classic/index.html"],
   },
   {
     capability: "Client Game Runner",
     oldPath: "old_project/src/client/ClientGameRunner.ts",
     newPath: "src/ui/runtime/ClientGameRunner.ts",
+    bridgePaths: ["src/ui/pages/ClassicPageController.ts", "public/classic/index.html"],
+  },
+  {
+    capability: "Classic UI Bridge",
+    oldPath: "old_project/static/index.html",
+    newPath: "src/ui/pages/ClassicPageController.ts",
+    bridgePaths: ["public/classic/index.html"],
   },
 ];
 
 const parityReport = parityChecks.map((check) => {
   const oldExists = existsSync(resolve(repoRoot, check.oldPath));
   const newExists = existsSync(resolve(repoRoot, check.newPath));
+  const bridgeExists = (check.bridgePaths ?? []).every((path) =>
+    existsSync(resolve(repoRoot, path)),
+  );
+  let status = "not_applicable";
+  if (oldExists && newExists) {
+    status = "ported";
+  } else if (oldExists && bridgeExists) {
+    status = "bridged_via_classic";
+  } else if (oldExists) {
+    status = "missing_in_new";
+  }
   return {
     ...check,
     oldExists,
     newExists,
-    status: oldExists && newExists ? "ported" : oldExists ? "missing_in_new" : "not_applicable",
+    bridgeExists,
+    status,
   };
 });
 
