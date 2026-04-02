@@ -1,6 +1,6 @@
 # Openfront Refactor Roadmap
 
-This document tracks the migration from `old_project` into the new Bun + Vite + TypeScript runtime.
+This document tracks the migration from legacy classic runtime package (`packages/classic-runtime`) into the new Bun + Vite + TypeScript runtime.
 
 ## Guiding Rules
 
@@ -128,9 +128,20 @@ This document tracks the migration from `old_project` into the new Bun + Vite + 
   `MultiTabSessionGuard` now protects against multi-tab conflicts with explicit lifecycle wiring, and `LocalGameHistoryStore` centralizes local replay history persistence.
 - Migrated help/news support surfaces into modular pages:
   the new UI shell now includes dedicated News + Help pages with migrated changelog and troubleshooting/keybind guidance, replacing modal-only legacy coupling.
+- Added phase-1 solo runtime control surface:
+  new `SoloPageController` provides start/stop auto-turn queue and manual turn queueing against the deterministic worker, enabling local solo runtime progression while full old singleplayer parity is migrated.
+- Added phase-2 classic frontend parity bridge:
+  `ClassicPageController` embeds the full legacy game UI from `public/classic/index.html` inside the new shell, with dedicated build/test scripts (`classic:build`, `classic:test`, `test:all`, `build:all`) and compatibility rewrite logic for static asset paths.
+- Added phase-3 native mode/modal migration slice:
+  new `GameModeSelector` and `SinglePlayerModal` modules are now integrated into the play page shell, backed by typed `LocalServer` solo session bootstrap logic and local history persistence.
+- Added phase-4 classic-only frontend integration:
+  runtime boot now mounts directly into `ClassicPageController` and `AppUiRoot` classic shell, removing active usage of the experimental Command HUD/play-shell flow while preserving migrated backend/postgres infrastructure.
+- Added phase-5 full-screen classic entry cleanup:
+  frontend entry (`src/main.ts`) now routes straight to `/classic/index.html` so users land in pure classic gameplay UI without additional custom wrapper/status UI.
 
 ### Pending
 
+- Native renderer/layer parity remains intentionally deferred while classic-only frontend mode is active.
 - Legacy commerce/cosmetic purchase surface (`Store`, payment checkout UI) is intentionally deferred from this core migration pass.
 - Ads/InGamePromo behavior remains untouched per migration constraints.
 

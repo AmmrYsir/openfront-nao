@@ -1,6 +1,10 @@
 export { AccountPageController } from "./AccountPageController";
+export { ClassicPageController } from "./ClassicPageController";
+export { GameModeSelector } from "./GameModeSelector";
 export { HelpPageController } from "./HelpPageController";
 export { LeaderboardPageController } from "./LeaderboardPageController";
 export { LobbyPageController } from "./LobbyPageController";
 export { NewsPageController } from "./NewsPageController";
 export { SettingsPageController } from "./SettingsPageController";
+export { SinglePlayerModal } from "./SinglePlayerModal";
+export { SoloPageController } from "./SoloPageController";

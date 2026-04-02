@@ -128,6 +128,25 @@ body {
   grid-template-rows: auto minmax(0, 1fr);
 }
 
+.classic-only-shell {
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.classic-only-nav {
+  justify-content: space-between;
+}
+
+.classic-only-content {
+  min-height: 0;
+  overflow: auto;
+  padding: 0.8rem;
+  display: grid;
+  align-content: start;
+  gap: 0.7rem;
+}
+
 .legacy-top-nav {
   display: flex;
   align-items: center;
@@ -424,6 +443,105 @@ body {
 
 .row-inline--spread {
   justify-content: space-between;
+}
+
+.mode-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.58rem;
+}
+
+.mode-card {
+  border: 1px solid rgba(112, 146, 224, 0.48);
+  border-radius: 12px;
+  background: linear-gradient(140deg, rgba(24, 47, 99, 0.88), rgba(18, 34, 73, 0.86));
+  color: #eef4ff;
+  text-align: left;
+  padding: 0.62rem 0.72rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.mode-card:hover {
+  transform: translateY(-1px);
+  border-color: rgba(152, 181, 248, 0.82);
+  box-shadow: 0 6px 18px rgba(22, 58, 133, 0.33);
+}
+
+.mode-card--primary {
+  background: linear-gradient(140deg, rgba(36, 87, 191, 0.94), rgba(27, 66, 153, 0.92));
+}
+
+.mode-card--ghost {
+  background: rgba(24, 40, 74, 0.58);
+}
+
+.mode-card-title {
+  display: block;
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.mode-card-subtitle {
+  display: block;
+  margin-top: 0.24rem;
+  font-size: 0.72rem;
+  color: #c2d5ff;
+}
+
+.solo-modal-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(4, 9, 18, 0.68);
+  backdrop-filter: blur(4px);
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.solo-modal-card {
+  width: min(580px, 100%);
+  max-height: min(88dvh, 760px);
+  overflow: auto;
+  border-radius: 14px;
+  border: 1px solid rgba(131, 163, 234, 0.55);
+  background: linear-gradient(180deg, rgba(10, 16, 31, 0.98), rgba(8, 13, 25, 0.98));
+  padding: 0.95rem;
+  display: grid;
+  gap: 0.72rem;
+  box-shadow: 0 12px 40px rgba(2, 7, 18, 0.52);
+}
+
+.solo-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.solo-modal-head h2 {
+  margin: 0;
+  font-size: 1rem;
+  color: #edf5ff;
+  letter-spacing: 0.03em;
+}
+
+.solo-modal-close {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  border: 1px solid rgba(130, 163, 232, 0.52);
+  background: rgba(24, 43, 82, 0.72);
+  color: #e8f0ff;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
 }
 
 .field-group {

@@ -7,9 +7,16 @@
     "dev": "vite",
     "backend:dev": "bun run src/backend/server.ts",
     "db:migrate": "bun run src/backend/db/migrate.ts",
+    "env:init": "node scripts/init-env.mjs",
+    "env:check": "node scripts/validate-env.mjs",
+    "gap:report": "node scripts/gap-report.mjs",
+    "classic:build": "node scripts/build-classic-compat.mjs",
+    "classic:test": "node scripts/classic-test.mjs",
     "check:legacy-deps": "node scripts/check-old-project-imports.mjs",
-    "test": "bun test tests/*.test.ts",
+    "test": "bun test ./tests",
+    "test:all": "bun run test && bun run classic:test",
     "build": "bun run check:legacy-deps && tsc && vite build",
+    "build:all": "bun run build && bun run classic:build",
     "preview": "vite preview"
   },
   "devDependencies": {

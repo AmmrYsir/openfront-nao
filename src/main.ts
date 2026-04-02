@@ -1,16 +1,11 @@
-import { createGameApp } from "./core/app/createGameApp";
 import "./style.css";
 
-const host = document.querySelector<HTMLDivElement>("#app");
-if (host === null) {
-  throw new Error("Missing #app root element.");
-}
+const baseUrl = import.meta.env.BASE_URL ?? "/";
+const normalizedBase =
+  baseUrl.endsWith("/") && baseUrl.length > 1 ? baseUrl.slice(0, -1) : baseUrl;
+const classicPath = `${normalizedBase === "/" ? "" : normalizedBase}/classic/index.html`;
+const targetUrl = `${classicPath}${window.location.search}${window.location.hash}`;
 
-const gameApp = createGameApp(host);
-gameApp.start();
-
-if (import.meta.hot) {
-  import.meta.hot.dispose(() => {
-    gameApp.stop();
-  });
+if (window.location.pathname !== classicPath) {
+  window.location.replace(targetUrl);
 }

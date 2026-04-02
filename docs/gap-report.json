@@ -1,0 +1,88 @@
+{
+  "generatedAt": "2026-04-02T13:36:36.682Z",
+  "counts": {
+    "oldSrcTs": 328,
+    "newSrcTs": 102,
+    "oldTests": 88,
+    "newTests": 24
+  },
+  "parityReport": [
+    {
+      "capability": "Singleplayer Modal",
+      "oldPath": "packages/classic-runtime/src/client/SinglePlayerModal.ts",
+      "newPath": "src/ui/pages/SinglePlayerModal.ts",
+      "bridgePaths": [
+        "src/ui/pages/ClassicPageController.ts",
+        "public/classic/index.html"
+      ],
+      "oldExists": true,
+      "newExists": true,
+      "bridgeExists": true,
+      "status": "ported"
+    },
+    {
+      "capability": "Game Mode Selector",
+      "oldPath": "packages/classic-runtime/src/client/GameModeSelector.ts",
+      "newPath": "src/ui/pages/GameModeSelector.ts",
+      "bridgePaths": [
+        "src/ui/pages/ClassicPageController.ts",
+        "public/classic/index.html"
+      ],
+      "oldExists": true,
+      "newExists": true,
+      "bridgeExists": true,
+      "status": "ported"
+    },
+    {
+      "capability": "Local Solo Server Flow",
+      "oldPath": "packages/classic-runtime/src/client/LocalServer.ts",
+      "newPath": "src/client/solo/LocalServer.ts",
+      "bridgePaths": [
+        "src/ui/pages/ClassicPageController.ts",
+        "public/classic/index.html"
+      ],
+      "oldExists": true,
+      "newExists": true,
+      "bridgeExists": true,
+      "status": "ported"
+    },
+    {
+      "capability": "Canvas Renderer",
+      "oldPath": "packages/classic-runtime/src/client/graphics/GameRenderer.ts",
+      "newPath": "src/ui/runtime/GameRenderer.ts",
+      "bridgePaths": [
+        "src/ui/pages/ClassicPageController.ts",
+        "public/classic/index.html"
+      ],
+      "oldExists": true,
+      "newExists": false,
+      "bridgeExists": true,
+      "status": "bridged_via_classic"
+    },
+    {
+      "capability": "Client Game Runner",
+      "oldPath": "packages/classic-runtime/src/client/ClientGameRunner.ts",
+      "newPath": "src/ui/runtime/ClientGameRunner.ts",
+      "bridgePaths": [
+        "src/ui/pages/ClassicPageController.ts",
+        "public/classic/index.html"
+      ],
+      "oldExists": true,
+      "newExists": false,
+      "bridgeExists": true,
+      "status": "bridged_via_classic"
+    },
+    {
+      "capability": "Classic UI Bridge",
+      "oldPath": "packages/classic-runtime/static/index.html",
+      "newPath": "src/ui/pages/ClassicPageController.ts",
+      "bridgePaths": [
+        "public/classic/index.html"
+      ],
+      "oldExists": true,
+      "newExists": true,
+      "bridgeExists": true,
+      "status": "ported"
+    }
+  ]
+}

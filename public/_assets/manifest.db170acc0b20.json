@@ -1,0 +1,28 @@
+{
+  "icons": [
+    {
+      "purpose": "maskable",
+      "sizes": "512x512",
+      "src": "/_assets/icons/icon512_maskable.5f8c9da604fe.png",
+      "type": "image/png"
+    },
+    {
+      "purpose": "any",
+      "sizes": "512x512",
+      "src": "/_assets/icons/icon512_rounded.5b9350c00960.png",
+      "type": "image/png"
+    }
+  ],
+  "orientation": "portrait",
+  "display_override": [
+    "fullscreen",
+    "minimal-ui"
+  ],
+  "display": "standalone",
+  "dir": "auto",
+  "lang": "en",
+  "name": "OpenFront.io",
+  "short_name": "OpenFront",
+  "start_url": "/",
+  "id": "/"
+}
