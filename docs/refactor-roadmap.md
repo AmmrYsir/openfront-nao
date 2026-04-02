@@ -132,6 +132,8 @@ This document tracks the migration from `old_project` into the new Bun + Vite + 
   new `SoloPageController` provides start/stop auto-turn queue and manual turn queueing against the deterministic worker, enabling local solo runtime progression while full old singleplayer parity is migrated.
 - Added phase-2 classic frontend parity bridge:
   `ClassicPageController` embeds the full legacy game UI from `public/classic/index.html` inside the new shell, with dedicated build/test scripts (`classic:build`, `classic:test`, `test:all`, `build:all`) and compatibility rewrite logic for static asset paths.
+- Added phase-3 native mode/modal migration slice:
+  new `GameModeSelector` and `SinglePlayerModal` modules are now integrated into the play page shell, backed by typed `LocalServer` solo session bootstrap logic and local history persistence.
 
 ### Pending
 

@@ -65,6 +65,16 @@ This plan migrates the remaining `old_project` gameplay/frontend stack into the 
 - Port remaining high-impact pages/modals: lobby flows, help/troubleshooting, account, leaderboard interactions, settings parity.
 - Keep modules separated by domain (`ui/pages`, `client/services`, `game/runtime`).
 
+### Phase 3A Milestone (Completed)
+
+- Added native `GameModeSelector` module at `src/ui/pages/GameModeSelector.ts`.
+- Added native `SinglePlayerModal` module at `src/ui/pages/SinglePlayerModal.ts`.
+- Added migrated local solo domain module at `src/client/solo/LocalServer.ts`.
+- Wired mode hub + modal overlay into `AppUiRoot`/`createGameApp` so users can launch:
+  - new runtime solo flow
+  - classic UI fallback flow
+  from a native Phase-3 surface.
+
 ### Exit Criteria
 
 - Critical user journeys from old frontend are available in new frontend.
@@ -111,4 +121,5 @@ This plan migrates the remaining `old_project` gameplay/frontend stack into the 
 - Phase 0: completed
 - Phase 1: completed
 - Phase 2: in progress (bridge milestone complete, native renderer parity pending)
-- Phase 3-5: pending
+- Phase 3: in progress (mode + singleplayer modal milestone complete)
+- Phase 4-5: pending

@@ -20,14 +20,17 @@ import { resolveBrowserRuntimeServerConfig } from "../../client/config/RuntimeSe
 import { RankedMatchmakingSession } from "../../client/matchmaking/RankedMatchmakingSession";
 import { UserPreferencesStore } from "../../client/settings/UserPreferencesStore";
 import { MultiTabSessionGuard } from "../../client/session/MultiTabSessionGuard";
+import { LocalServer } from "../../client/solo/LocalServer";
 import {
   AccountPageController,
   ClassicPageController,
+  GameModeSelector,
   HelpPageController,
   LeaderboardPageController,
   LobbyPageController,
   NewsPageController,
   SettingsPageController,
+  SinglePlayerModal,
   SoloPageController,
 } from "../../ui/pages";
 
@@ -65,6 +68,7 @@ export function createGameApp(host: HTMLElement): GameApp {
     apiKey: params.get("apiKey"),
   });
   const userPreferencesStore = new UserPreferencesStore();
+  const localServer = new LocalServer();
   const multiTabGuard =
     typeof window !== "undefined" ? new MultiTabSessionGuard() : null;
   const runtimeServerConfig = resolveBrowserRuntimeServerConfig();
@@ -109,6 +113,24 @@ export function createGameApp(host: HTMLElement): GameApp {
     uiRoot.setStatus(`Queued local sample turn ${turn.turnNumber}.`);
   };
 
+  async function startSoloAutoQueue(): Promise<void> {
+    await ensureWorkerInitialized();
+    if (soloAutoQueueTimer !== null) {
+      return;
+    }
+    soloAutoQueueTimer = setInterval(() => {
+      void queueSampleTurn();
+    }, 1200);
+  }
+
+  function stopSoloAutoQueue(): void {
+    if (soloAutoQueueTimer === null) {
+      return;
+    }
+    clearInterval(soloAutoQueueTimer);
+    soloAutoQueueTimer = null;
+  }
+
   const accountPageController = new AccountPageController({
     host: uiRoot.getAccountPanelHost(),
     authClient,
@@ -122,23 +144,28 @@ export function createGameApp(host: HTMLElement): GameApp {
   const soloPageController = new SoloPageController({
     host: uiRoot.getSoloPanelHost(),
     onQueueTurn: queueSampleTurn,
-    onStartAutoQueue: async () => {
-      await ensureWorkerInitialized();
-      if (soloAutoQueueTimer !== null) {
-        return;
-      }
-      soloAutoQueueTimer = setInterval(() => {
-        void queueSampleTurn();
-      }, 1200);
-    },
-    onStopAutoQueue: () => {
-      if (soloAutoQueueTimer === null) {
-        return;
-      }
-      clearInterval(soloAutoQueueTimer);
-      soloAutoQueueTimer = null;
-    },
+    onStartAutoQueue: startSoloAutoQueue,
+    onStopAutoQueue: stopSoloAutoQueue,
     onStatus: (status) => uiRoot.setSoloStatus(status),
+  });
+  const singlePlayerModal = new SinglePlayerModal({
+    host: uiRoot.getModalHost(),
+    localServer,
+    onNavigateToPage: (pageId) => {
+      uiRoot.showPage(pageId);
+    },
+    onStartAutoQueue: startSoloAutoQueue,
+    onStatus: (status) => uiRoot.setStatus(status),
+  });
+  const gameModeSelector = new GameModeSelector({
+    host: uiRoot.getModeSelectorHost(),
+    onOpenSinglePlayer: () => {
+      singlePlayerModal.open();
+    },
+    onNavigateToPage: (pageId) => {
+      uiRoot.showPage(pageId);
+    },
+    onStatus: (status) => uiRoot.setStatus(status),
   });
   lobbyPageController = new LobbyPageController({
     host: uiRoot.getLobbyPanelHost(),
@@ -237,6 +264,8 @@ export function createGameApp(host: HTMLElement): GameApp {
   }
 
   async function hydrateClientServices(): Promise<void> {
+    await gameModeSelector.hydrate();
+    await singlePlayerModal.hydrate();
     await classicPageController.hydrate();
     await soloPageController.hydrate();
     await accountPageController.hydrate();
@@ -261,6 +290,7 @@ export function createGameApp(host: HTMLElement): GameApp {
       });
       void ensureWorkerInitialized().then(() => workerClient.getSnapshot());
       void hydrateClientServices().catch(() => {
+        uiRoot.setStatus("Mode setup service error.");
         uiRoot.setAccountStatus("Account service error.");
         uiRoot.setClassicStatus("Classic UI service error.");
         uiRoot.setSoloStatus("Solo runtime service error.");
@@ -278,11 +308,10 @@ export function createGameApp(host: HTMLElement): GameApp {
       disposed = true;
       multiTabGuard?.stopMonitoring();
       rankedMatchmakingSession.stop();
-      if (soloAutoQueueTimer !== null) {
-        clearInterval(soloAutoQueueTimer);
-        soloAutoQueueTimer = null;
-      }
+      stopSoloAutoQueue();
       lobbySocket.stop();
+      gameModeSelector.dispose();
+      singlePlayerModal.dispose();
       classicPageController.dispose();
       soloPageController.dispose();
       accountPageController.dispose();

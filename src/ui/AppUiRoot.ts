@@ -118,6 +118,8 @@ export class AppUiRoot {
   private readonly root: HTMLElement;
   private readonly hudMount: HTMLElement;
   private readonly statusValue: HTMLElement;
+  private readonly modeSelectorHost: HTMLElement | null;
+  private readonly modalHost: HTMLElement | null;
   private readonly classicStatusValue: HTMLElement | null;
   private readonly soloStatusValue: HTMLElement | null;
   private readonly accountStatusValue: HTMLElement | null;
@@ -204,6 +206,7 @@ export class AppUiRoot {
 
           <main class="legacy-main-content">
             <section data-page-panel="page-play" id="page-play" class="page-panel active">
+              <section id="mode-selector-host"></section>
               <section class="transport-panel">
                 <div class="transport-title">Runtime Status</div>
                 <div id="transport-status" class="transport-status">Booting simulation runtime...</div>
@@ -220,6 +223,7 @@ export class AppUiRoot {
             ${CONTENT_PANELS.map((panel) => renderContentPanel(panel)).join("")}
           </main>
         </div>
+        <div id="global-modal-host"></div>
       </div>
     `;
 
@@ -227,6 +231,8 @@ export class AppUiRoot {
 
     const hudMount = host.querySelector<HTMLElement>("#hud-mount");
     const statusValue = host.querySelector<HTMLElement>("#transport-status");
+    const modeSelectorHost = host.querySelector<HTMLElement>("#mode-selector-host");
+    const modalHost = host.querySelector<HTMLElement>("#global-modal-host");
     const classicStatusValue = host.querySelector<HTMLElement>("#classic-status");
     const soloStatusValue = host.querySelector<HTMLElement>("#solo-status");
     const accountStatusValue = host.querySelector<HTMLElement>("#account-status");
@@ -266,6 +272,8 @@ export class AppUiRoot {
 
     this.hudMount = hudMount;
     this.statusValue = statusValue;
+    this.modeSelectorHost = modeSelectorHost;
+    this.modalHost = modalHost;
     this.classicStatusValue = classicStatusValue;
     this.soloStatusValue = soloStatusValue;
     this.accountStatusValue = accountStatusValue;
@@ -323,6 +331,20 @@ export class AppUiRoot {
 
   getHudHost(): HTMLElement {
     return this.hudMount;
+  }
+
+  getModeSelectorHost(): HTMLElement {
+    if (!this.modeSelectorHost) {
+      throw new Error("Missing mode selector host.");
+    }
+    return this.modeSelectorHost;
+  }
+
+  getModalHost(): HTMLElement {
+    if (!this.modalHost) {
+      throw new Error("Missing modal host.");
+    }
+    return this.modalHost;
   }
 
   setStatus(text: string): void {

@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-04-02T11:17:09.274Z",
+  "generatedAt": "2026-04-02T11:42:52.749Z",
   "counts": {
     "oldSrcTs": 328,
-    "newSrcTs": 99,
+    "newSrcTs": 102,
     "oldTests": 88,
-    "newTests": 23
+    "newTests": 24
   },
   "parityReport": [
     {
@@ -16,9 +16,9 @@
         "public/classic/index.html"
       ],
       "oldExists": true,
-      "newExists": false,
+      "newExists": true,
       "bridgeExists": true,
-      "status": "bridged_via_classic"
+      "status": "ported"
     },
     {
       "capability": "Game Mode Selector",
@@ -29,9 +29,9 @@
         "public/classic/index.html"
       ],
       "oldExists": true,
-      "newExists": false,
+      "newExists": true,
       "bridgeExists": true,
-      "status": "bridged_via_classic"
+      "status": "ported"
     },
     {
       "capability": "Local Solo Server Flow",
@@ -42,9 +42,9 @@
         "public/classic/index.html"
       ],
       "oldExists": true,
-      "newExists": false,
+      "newExists": true,
       "bridgeExists": true,
-      "status": "bridged_via_classic"
+      "status": "ported"
     },
     {
       "capability": "Canvas Renderer",
