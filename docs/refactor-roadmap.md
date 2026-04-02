@@ -114,11 +114,15 @@ This document tracks the migration from `old_project` into the new Bun + Vite + 
   `src/backend` now includes env config, Postgres pool, SQL migration tooling, health server bootstrap, repository contracts, and local dockerized Postgres setup.
 - Added typed backend service layer + API surface:
   Postgres repositories (`users`, `game_records`, `ranked_leaderboard`, `public_lobbies`) now back auth refresh/user profile, leaderboard, game archive/read, game-exists, lobby endpoints, and instance metadata routes.
+- Migrated legacy page-flow scaffolding into modular UI controllers:
+  account, lobby directory, leaderboard, and settings panels now run from `src/ui/pages/*` and are integrated by `createGameApp` through typed `src/client/*` service modules.
+- Added typed local user preferences migration:
+  `src/client/settings/UserPreferencesStore.ts` now centralizes username/clan/language/runtime preference persistence and validation from legacy settings behavior.
 
 ### Pending
 
-- No blocking migration tasks remain in the new runtime scaffold.
-- Legacy UI/website pages and modal flows still live in `old_project/src/client` by design and are treated as separate product-surface migration work.
+- Backend persistence/sync for profile + runtime preferences is not yet wired; current settings controller persists locally.
+- Legacy specialty modals (help/store/news/troubleshooting) remain in `old_project/src/client` and are separate from core runtime migration.
 
 ## File-by-File Migration Order
 

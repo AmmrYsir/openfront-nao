@@ -26,6 +26,11 @@ export class AppUiRoot {
   private readonly accountStatusValue: HTMLElement | null;
   private readonly lobbyStatusValue: HTMLElement | null;
   private readonly leaderboardStatusValue: HTMLElement | null;
+  private readonly settingsStatusValue: HTMLElement | null;
+  private readonly accountPanelHost: HTMLElement | null;
+  private readonly lobbyPanelHost: HTMLElement | null;
+  private readonly leaderboardPanelHost: HTMLElement | null;
+  private readonly settingsPanelHost: HTMLElement | null;
   private readonly connectButton: HTMLButtonElement | null;
   private readonly disconnectButton: HTMLButtonElement | null;
   private readonly hasLiveTransport: boolean;
@@ -61,16 +66,32 @@ export class AppUiRoot {
           <section id="hud-mount"></section>
         </section>
         <section data-page-panel="page-account" id="page-account" class="page-panel" hidden>
-          <div id="account-status" class="placeholder-panel">Account flow migration scaffold</div>
+          <div class="panel-status-row">
+            <span class="panel-status-label">Account status</span>
+            <span id="account-status" class="panel-status-value">Idle.</span>
+          </div>
+          <div id="account-panel-host"></div>
         </section>
         <section data-page-panel="page-lobby" id="page-lobby" class="page-panel" hidden>
-          <div id="lobby-status" class="placeholder-panel">Lobby flow migration scaffold</div>
+          <div class="panel-status-row">
+            <span class="panel-status-label">Lobby status</span>
+            <span id="lobby-status" class="panel-status-value">Idle.</span>
+          </div>
+          <div id="lobby-panel-host"></div>
         </section>
         <section data-page-panel="page-leaderboard" id="page-leaderboard" class="page-panel" hidden>
-          <div id="leaderboard-status" class="placeholder-panel">Leaderboard flow migration scaffold</div>
+          <div class="panel-status-row">
+            <span class="panel-status-label">Leaderboard status</span>
+            <span id="leaderboard-status" class="panel-status-value">Idle.</span>
+          </div>
+          <div id="leaderboard-panel-host"></div>
         </section>
         <section data-page-panel="page-settings" id="page-settings" class="page-panel" hidden>
-          <div class="placeholder-panel">Settings flow migration scaffold</div>
+          <div class="panel-status-row">
+            <span class="panel-status-label">Settings status</span>
+            <span id="settings-status" class="panel-status-value">Idle.</span>
+          </div>
+          <div id="settings-panel-host"></div>
         </section>
       </div>
     `;
@@ -83,6 +104,16 @@ export class AppUiRoot {
     const lobbyStatusValue = host.querySelector<HTMLElement>("#lobby-status");
     const leaderboardStatusValue =
       host.querySelector<HTMLElement>("#leaderboard-status");
+    const settingsStatusValue =
+      host.querySelector<HTMLElement>("#settings-status");
+    const accountPanelHost =
+      host.querySelector<HTMLElement>("#account-panel-host");
+    const lobbyPanelHost = host.querySelector<HTMLElement>("#lobby-panel-host");
+    const leaderboardPanelHost = host.querySelector<HTMLElement>(
+      "#leaderboard-panel-host",
+    );
+    const settingsPanelHost =
+      host.querySelector<HTMLElement>("#settings-panel-host");
     const connectButton =
       host.querySelector<HTMLButtonElement>("#transport-connect");
     const disconnectButton = host.querySelector<HTMLButtonElement>(
@@ -98,6 +129,11 @@ export class AppUiRoot {
     this.accountStatusValue = accountStatusValue;
     this.lobbyStatusValue = lobbyStatusValue;
     this.leaderboardStatusValue = leaderboardStatusValue;
+    this.settingsStatusValue = settingsStatusValue;
+    this.accountPanelHost = accountPanelHost;
+    this.lobbyPanelHost = lobbyPanelHost;
+    this.leaderboardPanelHost = leaderboardPanelHost;
+    this.settingsPanelHost = settingsPanelHost;
     this.connectButton = connectButton;
     this.disconnectButton = disconnectButton;
 
@@ -155,6 +191,41 @@ export class AppUiRoot {
       return;
     }
     this.leaderboardStatusValue.textContent = text;
+  }
+
+  setSettingsStatus(text: string): void {
+    if (!this.settingsStatusValue) {
+      return;
+    }
+    this.settingsStatusValue.textContent = text;
+  }
+
+  getAccountPanelHost(): HTMLElement {
+    if (!this.accountPanelHost) {
+      throw new Error("Missing account panel host.");
+    }
+    return this.accountPanelHost;
+  }
+
+  getLobbyPanelHost(): HTMLElement {
+    if (!this.lobbyPanelHost) {
+      throw new Error("Missing lobby panel host.");
+    }
+    return this.lobbyPanelHost;
+  }
+
+  getLeaderboardPanelHost(): HTMLElement {
+    if (!this.leaderboardPanelHost) {
+      throw new Error("Missing leaderboard panel host.");
+    }
+    return this.leaderboardPanelHost;
+  }
+
+  getSettingsPanelHost(): HTMLElement {
+    if (!this.settingsPanelHost) {
+      throw new Error("Missing settings panel host.");
+    }
+    return this.settingsPanelHost;
   }
 
   showPage(pageId: string): void {

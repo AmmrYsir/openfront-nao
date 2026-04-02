@@ -5,6 +5,8 @@ import { AuthClient } from "../auth/AuthClient";
 const RankedLeaderboardRowSchema = z.object({
   playerID: z.string(),
   elo: z.number(),
+  wins: z.number().optional(),
+  losses: z.number().optional(),
 });
 
 const RankedLeaderboardResponseSchema = z.object({

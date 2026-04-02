@@ -15,7 +15,15 @@ import { GameWorkerClient } from "../../game/worker/GameWorkerClient";
 import { AuthClient } from "../../client/auth/AuthClient";
 import { PublicApiClient } from "../../client/api/PublicApiClient";
 import { PublicLobbySocket } from "../../client/lobby/PublicLobbySocket";
+import { LobbyDirectoryClient } from "../../client/lobby/LobbyDirectoryClient";
 import { resolveBrowserRuntimeServerConfig } from "../../client/config/RuntimeServerConfig";
+import { UserPreferencesStore } from "../../client/settings/UserPreferencesStore";
+import {
+  AccountPageController,
+  LeaderboardPageController,
+  LobbyPageController,
+  SettingsPageController,
+} from "../../ui/pages";
 
 interface AppEvents {
   "debug:queue-turn": undefined;
@@ -47,9 +55,15 @@ export function createGameApp(host: HTMLElement): GameApp {
   });
   const authClient = new AuthClient();
   const apiClient = new PublicApiClient(authClient);
+  const lobbyDirectoryClient = new LobbyDirectoryClient({
+    apiKey: params.get("apiKey"),
+  });
+  const userPreferencesStore = new UserPreferencesStore();
   const runtimeServerConfig = resolveBrowserRuntimeServerConfig();
+  let lobbyPageController: LobbyPageController | null = null;
   const lobbySocket = new PublicLobbySocket(
     (publicGames) => {
+      lobbyPageController?.setRealtimeCount(publicGames.lobbies.length);
       uiRoot.setLobbyStatus(`Public lobbies online: ${publicGames.lobbies.length}`);
     },
     {
@@ -60,6 +74,28 @@ export function createGameApp(host: HTMLElement): GameApp {
   );
   let nextTurnNumber = 1;
   let disposed = false;
+
+  const accountPageController = new AccountPageController({
+    host: uiRoot.getAccountPanelHost(),
+    authClient,
+    apiClient,
+    onStatus: (status) => uiRoot.setAccountStatus(status),
+  });
+  lobbyPageController = new LobbyPageController({
+    host: uiRoot.getLobbyPanelHost(),
+    lobbyDirectoryClient,
+    onStatus: (status) => uiRoot.setLobbyStatus(status),
+  });
+  const leaderboardPageController = new LeaderboardPageController({
+    host: uiRoot.getLeaderboardPanelHost(),
+    apiClient,
+    onStatus: (status) => uiRoot.setLeaderboardStatus(status),
+  });
+  const settingsPageController = new SettingsPageController({
+    host: uiRoot.getSettingsPanelHost(),
+    preferencesStore: userPreferencesStore,
+    onStatus: (status) => uiRoot.setSettingsStatus(status),
+  });
 
   const queueSampleTurn = async (): Promise<void> => {
     uiRoot.setStatus("Queueing local sample turn...");
@@ -140,26 +176,12 @@ export function createGameApp(host: HTMLElement): GameApp {
   }
 
   async function hydrateClientServices(): Promise<void> {
-    uiRoot.setAccountStatus("Checking account session...");
-    const userMe = await apiClient.getUserMe();
-    if (userMe === false) {
-      uiRoot.setAccountStatus("Account not authenticated yet.");
-    } else {
-      const handle = userMe.user.discord?.username ?? userMe.user.email ?? "unknown";
-      uiRoot.setAccountStatus(`Authenticated as ${handle}.`);
+    await accountPageController.hydrate();
+    await leaderboardPageController.hydrate();
+    if (lobbyPageController) {
+      await lobbyPageController.hydrate();
     }
-
-    uiRoot.setLeaderboardStatus("Loading ranked leaderboard...");
-    const leaderboard = await apiClient.fetchPlayerLeaderboard(1);
-    if (leaderboard === false) {
-      uiRoot.setLeaderboardStatus("Leaderboard unavailable.");
-    } else if (leaderboard === "reached_limit") {
-      uiRoot.setLeaderboardStatus("Leaderboard page limit reached.");
-    } else {
-      uiRoot.setLeaderboardStatus(
-        `Top ranked players loaded: ${leaderboard.players.length}.`,
-      );
-    }
+    settingsPageController.hydrate();
 
     uiRoot.setLobbyStatus("Connecting to lobby updates...");
     await lobbySocket.start();
@@ -172,6 +194,7 @@ export function createGameApp(host: HTMLElement): GameApp {
         uiRoot.setAccountStatus("Account service error.");
         uiRoot.setLobbyStatus("Lobby service error.");
         uiRoot.setLeaderboardStatus("Leaderboard service error.");
+        uiRoot.setSettingsStatus("Settings service error.");
       });
     },
     stop: () => {
@@ -180,6 +203,10 @@ export function createGameApp(host: HTMLElement): GameApp {
       }
       disposed = true;
       lobbySocket.stop();
+      accountPageController.dispose();
+      lobbyPageController?.dispose();
+      leaderboardPageController.dispose();
+      settingsPageController.dispose();
       liveTransport?.disconnect();
       detachQueueHandler();
       events.clear();
