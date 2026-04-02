@@ -84,6 +84,14 @@ async function handleMessage(message: MainToWorkerMessage): Promise<void> {
           miniMapHeight: mapBootstrap.miniMapHeight,
         },
         mapBootstrap.nationCount,
+        mapBootstrap.terrainData,
+        {
+          landComponentCount: mapBootstrap.landComponentCount,
+          largestLandComponentSize: mapBootstrap.largestLandComponentSize,
+          waterComponentCount: mapBootstrap.waterComponentCount,
+          largestWaterComponentSize: mapBootstrap.largestWaterComponentSize,
+          sampleWaterPathLength: mapBootstrap.sampleWaterPathLength,
+        },
       );
 
       initialized = true;

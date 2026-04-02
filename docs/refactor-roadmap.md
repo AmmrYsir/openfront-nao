@@ -87,6 +87,8 @@ This document tracks the migration from `old_project` into the new Bun + Vite + 
   optional websocket turn ingestion, validated server message contracts, UI transport controls, and simulation port abstraction in `createGameApp`.
 - Added execution-time intent rule validation with legacy cooldowns:
   deterministic rejection of invalid/self-target/cooldown intents and worker snapshot diagnostics for rejected intent reasons.
+- Added foundational pathfinding/spatial migration for terrain maps:
+  connected-component analysis and shortest-path utilities integrated at map bootstrap, with map-topology metrics and map-aware tile validation in intent execution.
 
 ### Pending
 

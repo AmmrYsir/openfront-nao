@@ -1,5 +1,6 @@
 import { LEGACY_SIMULATION_RULES } from "../config/legacySimulationRules";
 import type { StampedIntent } from "../contracts/turn";
+import type { GameSessionStore } from "../state/GameSessionStore";
 
 export interface IntentValidationResult {
   accepted: boolean;
@@ -12,7 +13,11 @@ export class IntentRuleValidator {
   private readonly lastEmbargoAllTickByClient = new Map<string, number>();
   private readonly lastDeleteUnitTickByClient = new Map<string, number>();
 
-  validate(intent: StampedIntent, turnNumber: number): IntentValidationResult {
+  validate(
+    intent: StampedIntent,
+    turnNumber: number,
+    store: GameSessionStore,
+  ): IntentValidationResult {
     switch (intent.type) {
       case "attack":
         if (intent.troops === null || intent.troops <= 0) {
@@ -27,14 +32,20 @@ export class IntentRuleValidator {
         if (intent.troops <= 0) {
           return this.rejected("boat_troops_non_positive");
         }
-        if (intent.dst < 0) {
+        if (!store.isMapTileValid(intent.dst)) {
           return this.rejected("boat_invalid_destination_tile");
+        }
+        if (store.isLandTile(intent.dst) === true) {
+          return this.rejected("boat_destination_not_water");
         }
         return this.accepted();
 
       case "spawn":
-        if (intent.tile < 0) {
+        if (!store.isMapTileValid(intent.tile)) {
           return this.rejected("spawn_invalid_tile");
+        }
+        if (store.isLandTile(intent.tile) === false) {
+          return this.rejected("spawn_not_on_land");
         }
         return this.accepted();
 
@@ -157,8 +168,20 @@ export class IntentRuleValidator {
         return this.accepted();
 
       case "move_warship":
-        if (intent.tile < 0) {
+        if (!store.isMapTileValid(intent.tile)) {
           return this.rejected("move_warship_invalid_tile");
+        }
+        if (store.isLandTile(intent.tile) === true) {
+          return this.rejected("move_warship_not_on_water");
+        }
+        return this.accepted();
+
+      case "build_unit":
+        if (!store.isMapTileValid(intent.tile)) {
+          return this.rejected("build_unit_invalid_tile");
+        }
+        if (store.isLandTile(intent.tile) === false) {
+          return this.rejected("build_unit_not_on_land");
         }
         return this.accepted();
 

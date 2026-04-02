@@ -57,6 +57,11 @@ export interface GameSessionSnapshot {
   miniMapWidth: number | null;
   miniMapHeight: number | null;
   nationCount: number;
+  landComponentCount: number;
+  largestLandComponentSize: number;
+  waterComponentCount: number;
+  largestWaterComponentSize: number;
+  sampleWaterPathLength: number | null;
 }
 
 export class GameSessionStore {
@@ -91,6 +96,12 @@ export class GameSessionStore {
   private miniMapWidth: number | null = null;
   private miniMapHeight: number | null = null;
   private nationCount = 0;
+  private terrainData: Uint8Array | null = null;
+  private landComponentCount = 0;
+  private largestLandComponentSize = 0;
+  private waterComponentCount = 0;
+  private largestWaterComponentSize = 0;
+  private sampleWaterPathLength: number | null = null;
 
   enqueueTurn(turn: Turn): void {
     this.pendingTurns.push(turn);
@@ -277,6 +288,36 @@ export class GameSessionStore {
     this.projectedWorld.recordKickPlayer(playerID);
   }
 
+  isMapTileValid(tile: number): boolean {
+    if (!Number.isInteger(tile) || tile < 0) {
+      return false;
+    }
+
+    if (this.mapWidth === null || this.mapHeight === null) {
+      return true;
+    }
+
+    return tile < this.mapWidth * this.mapHeight;
+  }
+
+  isLandTile(tile: number): boolean | null {
+    if (!this.isMapTileValid(tile)) {
+      return null;
+    }
+    if (this.terrainData === null) {
+      return null;
+    }
+    return (this.terrainData[tile] & (1 << 7)) !== 0;
+  }
+
+  isWaterTile(tile: number): boolean | null {
+    const isLand = this.isLandTile(tile);
+    if (isLand === null) {
+      return null;
+    }
+    return !isLand;
+  }
+
   setMapBootstrap(
     mapId: string,
     mapSize: string,
@@ -288,6 +329,14 @@ export class GameSessionStore {
       miniMapHeight: number;
     },
     nationCount: number,
+    terrainData: Uint8Array,
+    terrainMetrics: {
+      landComponentCount: number;
+      largestLandComponentSize: number;
+      waterComponentCount: number;
+      largestWaterComponentSize: number;
+      sampleWaterPathLength: number | null;
+    },
   ): void {
     this.mapId = mapId;
     this.mapSize = mapSize;
@@ -298,6 +347,18 @@ export class GameSessionStore {
     this.miniMapWidth = dimensions.miniMapWidth;
     this.miniMapHeight = dimensions.miniMapHeight;
     this.nationCount = Math.max(0, nationCount);
+    this.terrainData = terrainData;
+    this.landComponentCount = Math.max(0, terrainMetrics.landComponentCount);
+    this.largestLandComponentSize = Math.max(
+      0,
+      terrainMetrics.largestLandComponentSize,
+    );
+    this.waterComponentCount = Math.max(0, terrainMetrics.waterComponentCount);
+    this.largestWaterComponentSize = Math.max(
+      0,
+      terrainMetrics.largestWaterComponentSize,
+    );
+    this.sampleWaterPathLength = terrainMetrics.sampleWaterPathLength;
   }
 
   snapshot(): GameSessionSnapshot {
@@ -359,6 +420,11 @@ export class GameSessionStore {
       miniMapWidth: this.miniMapWidth,
       miniMapHeight: this.miniMapHeight,
       nationCount: this.nationCount,
+      landComponentCount: this.landComponentCount,
+      largestLandComponentSize: this.largestLandComponentSize,
+      waterComponentCount: this.waterComponentCount,
+      largestWaterComponentSize: this.largestWaterComponentSize,
+      sampleWaterPathLength: this.sampleWaterPathLength,
     };
   }
 }

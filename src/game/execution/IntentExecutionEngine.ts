@@ -10,7 +10,11 @@ export class IntentExecutionEngine {
     for (const intent of turn.intents) {
       const handler = intentHandlers[intent.type];
       if (handler) {
-        const validation = this.validator.validate(intent, turn.turnNumber);
+        const validation = this.validator.validate(
+          intent,
+          turn.turnNumber,
+          store,
+        );
         if (!validation.accepted) {
           store.markIntentSupported();
           store.markIntentRejected(intent.type, validation.reason ?? "unknown");

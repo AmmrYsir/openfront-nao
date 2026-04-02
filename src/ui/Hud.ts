@@ -93,6 +93,11 @@ export class Hud {
   private readonly mapSourceValue: HTMLElement;
   private readonly mapDimensionsValue: HTMLElement;
   private readonly nationCountValue: HTMLElement;
+  private readonly landComponentsValue: HTMLElement;
+  private readonly largestLandComponentValue: HTMLElement;
+  private readonly waterComponentsValue: HTMLElement;
+  private readonly largestWaterComponentValue: HTMLElement;
+  private readonly sampleWaterPathValue: HTMLElement;
   private readonly projectedPlayerCountValue: HTMLElement;
   private readonly projectedAllianceCountValue: HTMLElement;
   private readonly pendingAllianceRequestsValue: HTMLElement;
@@ -161,6 +166,11 @@ export class Hud {
             <div><dt>Map Source</dt><dd id="hud-map-source">n/a</dd></div>
             <div><dt>Map Dimensions</dt><dd id="hud-map-dimensions">n/a</dd></div>
             <div><dt>Nations</dt><dd id="hud-map-nations">0</dd></div>
+            <div><dt>Land Components</dt><dd id="hud-map-land-components">0</dd></div>
+            <div><dt>Largest Land Component</dt><dd id="hud-map-largest-land-component">0</dd></div>
+            <div><dt>Water Components</dt><dd id="hud-map-water-components">0</dd></div>
+            <div><dt>Largest Water Component</dt><dd id="hud-map-largest-water-component">0</dd></div>
+            <div><dt>Sample Water Route</dt><dd id="hud-map-water-path">n/a</dd></div>
             <div><dt>Projected Players</dt><dd id="hud-projected-players">0</dd></div>
             <div><dt>Projected Alliances</dt><dd id="hud-projected-alliances">0</dd></div>
             <div><dt>Pending Alliance Requests</dt><dd id="hud-projected-alliance-requests">0</dd></div>
@@ -256,6 +266,20 @@ export class Hud {
       "#hud-map-dimensions",
     );
     const nationCountValue = host.querySelector<HTMLElement>("#hud-map-nations");
+    const landComponentsValue = host.querySelector<HTMLElement>(
+      "#hud-map-land-components",
+    );
+    const largestLandComponentValue = host.querySelector<HTMLElement>(
+      "#hud-map-largest-land-component",
+    );
+    const waterComponentsValue = host.querySelector<HTMLElement>(
+      "#hud-map-water-components",
+    );
+    const largestWaterComponentValue = host.querySelector<HTMLElement>(
+      "#hud-map-largest-water-component",
+    );
+    const sampleWaterPathValue =
+      host.querySelector<HTMLElement>("#hud-map-water-path");
     const projectedPlayerCountValue =
       host.querySelector<HTMLElement>("#hud-projected-players");
     const projectedAllianceCountValue = host.querySelector<HTMLElement>(
@@ -337,6 +361,11 @@ export class Hud {
       !mapSourceValue ||
       !mapDimensionsValue ||
       !nationCountValue ||
+      !landComponentsValue ||
+      !largestLandComponentValue ||
+      !waterComponentsValue ||
+      !largestWaterComponentValue ||
+      !sampleWaterPathValue ||
       !projectedPlayerCountValue ||
       !projectedAllianceCountValue ||
       !pendingAllianceRequestsValue ||
@@ -392,6 +421,11 @@ export class Hud {
     this.mapSourceValue = mapSourceValue;
     this.mapDimensionsValue = mapDimensionsValue;
     this.nationCountValue = nationCountValue;
+    this.landComponentsValue = landComponentsValue;
+    this.largestLandComponentValue = largestLandComponentValue;
+    this.waterComponentsValue = waterComponentsValue;
+    this.largestWaterComponentValue = largestWaterComponentValue;
+    this.sampleWaterPathValue = sampleWaterPathValue;
     this.projectedPlayerCountValue = projectedPlayerCountValue;
     this.projectedAllianceCountValue = projectedAllianceCountValue;
     this.pendingAllianceRequestsValue = pendingAllianceRequestsValue;
@@ -490,6 +524,22 @@ export class Hud {
         ? `${snapshot.mapWidth}x${snapshot.mapHeight} (mini ${snapshot.miniMapWidth}x${snapshot.miniMapHeight})`
         : "n/a";
     this.nationCountValue.textContent = renderNumber(snapshot.nationCount);
+    this.landComponentsValue.textContent = renderNumber(
+      snapshot.landComponentCount,
+    );
+    this.largestLandComponentValue.textContent = renderNumber(
+      snapshot.largestLandComponentSize,
+    );
+    this.waterComponentsValue.textContent = renderNumber(
+      snapshot.waterComponentCount,
+    );
+    this.largestWaterComponentValue.textContent = renderNumber(
+      snapshot.largestWaterComponentSize,
+    );
+    this.sampleWaterPathValue.textContent =
+      snapshot.sampleWaterPathLength === null
+        ? "n/a"
+        : renderNumber(snapshot.sampleWaterPathLength);
     this.projectedPlayerCountValue.textContent = renderNumber(
       snapshot.projectedPlayerCount,
     );
