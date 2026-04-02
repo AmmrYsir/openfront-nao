@@ -13,6 +13,9 @@ This document tracks the migration from `old_project` into the new Bun + Vite + 
 
 ### Completed
 
+- Legacy runtime asset migration copied into this project:
+  - `public/legacy/resources/*` (maps, sprites, sounds, lang, icons, fonts, flags, metadata)
+  - `public/legacy/proprietary/*` (licensed music/sounds + license)
 - New bootstrap and runtime shell:
   - `src/core/app/createGameApp.ts`
   - `src/core/loop/FixedStepLoop.ts`
@@ -27,6 +30,7 @@ This document tracks the migration from `old_project` into the new Bun + Vite + 
   - `src/game/worker/messages.ts`
   - `src/game/worker/GameWorkerClient.ts`
   - `src/game/worker/GameSimulation.worker.ts`
+  - worker init now loads terrain map from copied legacy assets
 - Execution migration scaffold (legacy ExecutionManager switch pattern, incrementally):
   - `src/game/execution/IntentExecutionEngine.ts`
   - `src/game/execution/handlers/*` (modular intent categories)
@@ -57,6 +61,7 @@ This document tracks the migration from `old_project` into the new Bun + Vite + 
 - Expanded from a minimal execution stub to full typed intent dispatch coverage for all current legacy intent types.
 - Added projected state counters for combat, movement, diplomacy, economy, construction, social, moderation, and configuration flows.
 - Upgraded debug HUD to visualize projected simulation metrics from worker snapshots.
+- Added map runtime config and worker bootstrap map loading against copied legacy assets.
 
 ### Pending
 

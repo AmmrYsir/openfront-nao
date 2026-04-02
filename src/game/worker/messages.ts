@@ -1,4 +1,5 @@
 import type { Turn } from "../contracts/turn";
+import type { MapRuntimeConfig } from "../maps/MapRuntimeConfig";
 import type { GameSessionSnapshot } from "../state/GameSessionStore";
 
 export type WorkerRequestType = "init" | "enqueue_turn" | "get_snapshot";
@@ -10,6 +11,7 @@ interface BaseMessage {
 
 export interface InitRequest extends BaseMessage {
   type: "init";
+  mapConfig: MapRuntimeConfig;
 }
 
 export interface EnqueueTurnRequest extends BaseMessage {

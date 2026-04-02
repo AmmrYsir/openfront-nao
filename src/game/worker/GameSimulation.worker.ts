@@ -3,6 +3,12 @@ import { GameSessionStore } from "../state/GameSessionStore";
 import { TurnQueueSystem } from "../systems/TurnQueueSystem";
 import { parseTurn } from "../contracts/intentSchemas";
 import { IntentExecutionEngine } from "../execution/IntentExecutionEngine";
+import {
+  LEGACY_MAPS_ROOT,
+  legacyMapUrl,
+} from "../../core/assets/legacyAssets";
+import { FetchGameMapLoader } from "../maps/FetchGameMapLoader";
+import { loadTerrainMap } from "../maps/TerrainMapLoader";
 
 const ctx: Worker = self as unknown as Worker;
 const store = new GameSessionStore();
@@ -66,11 +72,33 @@ async function drain(): Promise<void> {
   }
 }
 
-ctx.addEventListener("message", (event: MessageEvent<MainToWorkerMessage>) => {
-  const message = event.data;
+function createLegacyMapLoader(): FetchGameMapLoader {
+  return new FetchGameMapLoader((path) => legacyMapUrl(path));
+}
 
+async function handleMessage(message: MainToWorkerMessage): Promise<void> {
   switch (message.type) {
-    case "init":
+    case "init": {
+      const mapLoader = createLegacyMapLoader();
+      const terrainMap = await loadTerrainMap(
+        message.mapConfig.mapId,
+        message.mapConfig.mapSize,
+        mapLoader,
+      );
+
+      store.setMapBootstrap(
+        message.mapConfig.mapId,
+        message.mapConfig.mapSize,
+        `/${LEGACY_MAPS_ROOT}`,
+        {
+          mapWidth: terrainMap.gameMap.width,
+          mapHeight: terrainMap.gameMap.height,
+          miniMapWidth: terrainMap.miniGameMap.width,
+          miniMapHeight: terrainMap.miniGameMap.height,
+        },
+        terrainMap.nations.length,
+      );
+
       initialized = true;
       post({
         type: "initialized",
@@ -78,6 +106,7 @@ ctx.addEventListener("message", (event: MessageEvent<MainToWorkerMessage>) => {
         snapshot: store.snapshot(),
       });
       return;
+    }
 
     case "enqueue_turn":
       if (!initialized) {
@@ -104,4 +133,12 @@ ctx.addEventListener("message", (event: MessageEvent<MainToWorkerMessage>) => {
     default:
       return;
   }
+}
+
+ctx.addEventListener("message", (event: MessageEvent<MainToWorkerMessage>) => {
+  void handleMessage(event.data).catch((error: unknown) => {
+    const errorMessage =
+      error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+    console.error(`Simulation worker message failure: ${errorMessage}`);
+  });
 });

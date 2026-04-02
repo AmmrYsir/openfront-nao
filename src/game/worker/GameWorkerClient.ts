@@ -1,5 +1,9 @@
 import { createRequestId } from "../../utils/id";
 import type { Turn } from "../contracts/turn";
+import {
+  DEFAULT_MAP_RUNTIME_CONFIG,
+  type MapRuntimeConfig,
+} from "../maps/MapRuntimeConfig";
 import type { GameSessionSnapshot } from "../state/GameSessionStore";
 import type { WorkerToMainMessage } from "./messages";
 
@@ -11,16 +15,19 @@ interface PendingRequest {
 
 export interface GameWorkerClientOptions {
   onSnapshot?: (snapshot: GameSessionSnapshot) => void;
+  mapConfig?: MapRuntimeConfig;
 }
 
 export class GameWorkerClient {
   private readonly worker: Worker;
   private readonly pending = new Map<string, PendingRequest>();
   private onSnapshot?: (snapshot: GameSessionSnapshot) => void;
+  private readonly mapConfig: MapRuntimeConfig;
   private initialized = false;
 
   constructor(options: GameWorkerClientOptions = {}) {
     this.onSnapshot = options.onSnapshot;
+    this.mapConfig = options.mapConfig ?? DEFAULT_MAP_RUNTIME_CONFIG;
     this.worker = new Worker(new URL("./GameSimulation.worker.ts", import.meta.url), {
       type: "module",
     });
@@ -30,6 +37,7 @@ export class GameWorkerClient {
   async initialize(): Promise<GameSessionSnapshot> {
     const response = await this.request({
       type: "init",
+      mapConfig: this.mapConfig,
     });
 
     if (response.type !== "initialized") {
@@ -93,7 +101,10 @@ export class GameWorkerClient {
   }
 
   private request(
-    message: { type: "init" } | { type: "get_snapshot" } | { type: "enqueue_turn"; turn: Turn },
+    message:
+      | { type: "init"; mapConfig: MapRuntimeConfig }
+      | { type: "get_snapshot" }
+      | { type: "enqueue_turn"; turn: Turn },
   ): Promise<WorkerToMainMessage> {
     return new Promise<WorkerToMainMessage>((resolve, reject) => {
       const id = createRequestId();

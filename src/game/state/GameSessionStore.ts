@@ -24,6 +24,15 @@ export interface GameSessionSnapshot {
   donatedTroopsTotal: number;
   builtUnitTotal: number;
   lastConfigPatchSize: number;
+  mapId: string | null;
+  mapSize: string | null;
+  mapLoaded: boolean;
+  mapSourcePath: string | null;
+  mapWidth: number | null;
+  mapHeight: number | null;
+  miniMapWidth: number | null;
+  miniMapHeight: number | null;
+  nationCount: number;
 }
 
 export class GameSessionStore {
@@ -65,6 +74,15 @@ export class GameSessionStore {
     Factory: 0,
   };
   private lastConfigPatchSize = 0;
+  private mapId: string | null = null;
+  private mapSize: string | null = null;
+  private mapLoaded = false;
+  private mapSourcePath: string | null = null;
+  private mapWidth: number | null = null;
+  private mapHeight: number | null = null;
+  private miniMapWidth: number | null = null;
+  private miniMapHeight: number | null = null;
+  private nationCount = 0;
 
   enqueueTurn(turn: Turn): void {
     this.pendingTurns.push(turn);
@@ -181,6 +199,29 @@ export class GameSessionStore {
     this.lastConfigPatchSize = Math.max(0, size);
   }
 
+  setMapBootstrap(
+    mapId: string,
+    mapSize: string,
+    sourcePath: string,
+    dimensions: {
+      mapWidth: number;
+      mapHeight: number;
+      miniMapWidth: number;
+      miniMapHeight: number;
+    },
+    nationCount: number,
+  ): void {
+    this.mapId = mapId;
+    this.mapSize = mapSize;
+    this.mapSourcePath = sourcePath;
+    this.mapLoaded = true;
+    this.mapWidth = dimensions.mapWidth;
+    this.mapHeight = dimensions.mapHeight;
+    this.miniMapWidth = dimensions.miniMapWidth;
+    this.miniMapHeight = dimensions.miniMapHeight;
+    this.nationCount = Math.max(0, nationCount);
+  }
+
   snapshot(): GameSessionSnapshot {
     return {
       turnNumber: this.turnNumber,
@@ -207,6 +248,15 @@ export class GameSessionStore {
         0,
       ),
       lastConfigPatchSize: this.lastConfigPatchSize,
+      mapId: this.mapId,
+      mapSize: this.mapSize,
+      mapLoaded: this.mapLoaded,
+      mapSourcePath: this.mapSourcePath,
+      mapWidth: this.mapWidth,
+      mapHeight: this.mapHeight,
+      miniMapWidth: this.miniMapWidth,
+      miniMapHeight: this.miniMapHeight,
+      nationCount: this.nationCount,
     };
   }
 }

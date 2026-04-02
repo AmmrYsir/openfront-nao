@@ -28,6 +28,12 @@ export class Hud {
   private readonly donatedTroopsValue: HTMLElement;
   private readonly builtUnitsValue: HTMLElement;
   private readonly lastConfigPatchSizeValue: HTMLElement;
+  private readonly mapIdValue: HTMLElement;
+  private readonly mapSizeValue: HTMLElement;
+  private readonly mapLoadedValue: HTMLElement;
+  private readonly mapSourceValue: HTMLElement;
+  private readonly mapDimensionsValue: HTMLElement;
+  private readonly nationCountValue: HTMLElement;
   private readonly queueTurnButton: HTMLButtonElement;
   private readonly queueTurnHandler: () => void;
 
@@ -72,6 +78,12 @@ export class Hud {
             <div><dt>Donated Troops</dt><dd id="hud-donated-troops">0</dd></div>
             <div><dt>Built Units</dt><dd id="hud-built-units">0</dd></div>
             <div><dt>Last Config Patch</dt><dd id="hud-last-config-patch-size">0</dd></div>
+            <div><dt>Map ID</dt><dd id="hud-map-id">n/a</dd></div>
+            <div><dt>Map Size</dt><dd id="hud-map-size">n/a</dd></div>
+            <div><dt>Map Loaded</dt><dd id="hud-map-loaded">false</dd></div>
+            <div><dt>Map Source</dt><dd id="hud-map-source">n/a</dd></div>
+            <div><dt>Map Dimensions</dt><dd id="hud-map-dimensions">n/a</dd></div>
+            <div><dt>Nations</dt><dd id="hud-map-nations">0</dd></div>
           </dl>
         </section>
       </main>
@@ -132,6 +144,14 @@ export class Hud {
     const lastConfigPatchSizeValue = host.querySelector<HTMLElement>(
       "#hud-last-config-patch-size",
     );
+    const mapIdValue = host.querySelector<HTMLElement>("#hud-map-id");
+    const mapSizeValue = host.querySelector<HTMLElement>("#hud-map-size");
+    const mapLoadedValue = host.querySelector<HTMLElement>("#hud-map-loaded");
+    const mapSourceValue = host.querySelector<HTMLElement>("#hud-map-source");
+    const mapDimensionsValue = host.querySelector<HTMLElement>(
+      "#hud-map-dimensions",
+    );
+    const nationCountValue = host.querySelector<HTMLElement>("#hud-map-nations");
     const queueTurnButton =
       host.querySelector<HTMLButtonElement>("#queue-turn-btn");
 
@@ -162,6 +182,12 @@ export class Hud {
       !donatedTroopsValue ||
       !builtUnitsValue ||
       !lastConfigPatchSizeValue ||
+      !mapIdValue ||
+      !mapSizeValue ||
+      !mapLoadedValue ||
+      !mapSourceValue ||
+      !mapDimensionsValue ||
+      !nationCountValue ||
       !queueTurnButton
     ) {
       throw new Error("Failed to initialize HUD.");
@@ -193,6 +219,12 @@ export class Hud {
     this.donatedTroopsValue = donatedTroopsValue;
     this.builtUnitsValue = builtUnitsValue;
     this.lastConfigPatchSizeValue = lastConfigPatchSizeValue;
+    this.mapIdValue = mapIdValue;
+    this.mapSizeValue = mapSizeValue;
+    this.mapLoadedValue = mapLoadedValue;
+    this.mapSourceValue = mapSourceValue;
+    this.mapDimensionsValue = mapDimensionsValue;
+    this.nationCountValue = nationCountValue;
     this.queueTurnButton = queueTurnButton;
     this.queueTurnHandler = onQueueTurnRequested;
     this.queueTurnButton.addEventListener("click", this.queueTurnHandler);
@@ -257,6 +289,18 @@ export class Hud {
     this.lastConfigPatchSizeValue.textContent = renderNumber(
       snapshot.lastConfigPatchSize,
     );
+    this.mapIdValue.textContent = snapshot.mapId ?? "n/a";
+    this.mapSizeValue.textContent = snapshot.mapSize ?? "n/a";
+    this.mapLoadedValue.textContent = String(snapshot.mapLoaded);
+    this.mapSourceValue.textContent = snapshot.mapSourcePath ?? "n/a";
+    this.mapDimensionsValue.textContent =
+      snapshot.mapWidth !== null &&
+      snapshot.mapHeight !== null &&
+      snapshot.miniMapWidth !== null &&
+      snapshot.miniMapHeight !== null
+        ? `${snapshot.mapWidth}x${snapshot.mapHeight} (mini ${snapshot.miniMapWidth}x${snapshot.miniMapHeight})`
+        : "n/a";
+    this.nationCountValue.textContent = renderNumber(snapshot.nationCount);
   }
 
   dispose(): void {
