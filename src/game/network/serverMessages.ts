@@ -167,6 +167,10 @@ export function buildLegacyJoinOrRejoinMessage(
   });
 }
 
+export function parseLegacyClientMessage(raw: unknown): LegacyClientMessage {
+  return legacyClientMessageSchema.parse(raw);
+}
+
 export function buildLegacyPingMessage(): LegacyClientMessage {
   return legacyClientPingMessageSchema.parse({
     type: "ping",

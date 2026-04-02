@@ -89,6 +89,8 @@ This document tracks the migration from `old_project` into the new Bun + Vite + 
   deterministic rejection of invalid/self-target/cooldown intents and worker snapshot diagnostics for rejected intent reasons.
 - Added foundational pathfinding/spatial migration for terrain maps:
   connected-component analysis and shortest-path utilities integrated at map bootstrap, with map-topology metrics and map-aware tile validation in intent execution.
+- Added server-side migration scaffold in `src/server`:
+  typed room/session intent queueing + deterministic turn flush runtime compatible with legacy message shapes.
 
 ### Pending
 
