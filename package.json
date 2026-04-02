@@ -14,9 +14,9 @@
     "classic:test": "node scripts/classic-test.mjs",
     "check:legacy-deps": "node scripts/check-old-project-imports.mjs",
     "test": "bun test ./tests",
-    "test:all": "npm run test && npm run classic:test",
+    "test:all": "bun run test && bun run classic:test",
     "build": "bun run check:legacy-deps && tsc && vite build",
-    "build:all": "npm run build && npm run classic:build",
+    "build:all": "bun run build && bun run classic:build",
     "preview": "vite preview"
   },
   "devDependencies": {

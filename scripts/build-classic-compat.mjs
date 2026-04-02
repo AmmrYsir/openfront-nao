@@ -17,6 +17,25 @@ const oldStaticDir = resolve(oldProjectDir, "static");
 const legacyResourcesDir = resolve(root, "public", "legacy", "resources");
 const targetClassicDir = resolve(root, "public", "classic");
 const targetClassicIndexPath = resolve(targetClassicDir, "index.html");
+const runtimeGameEnvExpression = `(() => {
+        const params = new URLSearchParams(window.location.search);
+        const requestedEnv = params.get("classic_env");
+        if (requestedEnv === "dev" || requestedEnv === "staging" || requestedEnv === "prod") {
+          return requestedEnv;
+        }
+
+        const host = window.location.hostname.toLowerCase();
+        if (
+          host === "localhost" ||
+          host === "127.0.0.1" ||
+          host === "::1" ||
+          host.endsWith(".local")
+        ) {
+          return "dev";
+        }
+
+        return "prod";
+      })()`;
 
 function toPosixPath(pathValue) {
   return pathValue.replace(/\\/g, "/");
@@ -72,7 +91,7 @@ function replaceTemplatePlaceholders(indexHtml, assetManifestJson) {
   );
   html = html.replaceAll("<%- gitCommit %>", JSON.stringify("LEGACY-COMPAT"));
   html = html.replaceAll("<%- assetManifest %>", assetManifestJson);
-  html = html.replaceAll("<%- gameEnv %>", JSON.stringify("prod"));
+  html = html.replaceAll("<%- gameEnv %>", runtimeGameEnvExpression);
   html = html.replaceAll(
     "<%- backgroundImageUrl %>",
     "/legacy/resources/images/background.webp",
@@ -86,6 +105,27 @@ function replaceTemplatePlaceholders(indexHtml, assetManifestJson) {
     "/legacy/resources/images/OF.webp",
   );
   return html;
+}
+
+function runLegacyBuild() {
+  const commands = [
+    "bun run --cwd old_project build-prod",
+    "npm --prefix old_project run build-prod",
+  ];
+
+  for (const command of commands) {
+    try {
+      execSync(command, {
+        cwd: root,
+        stdio: "inherit",
+      });
+      return;
+    } catch (error) {
+      console.warn(`Legacy build command failed (${command}), trying fallback...`);
+    }
+  }
+
+  throw new Error("Failed to build old project with bun and npm fallbacks.");
 }
 
 function rewriteTextFilesRecursively(startDir) {
@@ -138,10 +178,7 @@ if (!existsSync(oldProjectDir)) {
 }
 
 console.log("Building old project production bundle...");
-execSync("npm --prefix old_project run build-prod", {
-  cwd: root,
-  stdio: "inherit",
-});
+runLegacyBuild();
 
 if (!existsSync(oldStaticDir)) {
   console.error("Expected old_project/static after build.");
