@@ -106,6 +106,8 @@ This document tracks the migration from `old_project` into the new Bun + Vite + 
   typed public lobby socket + matchmaking client transport modules in `src/client/lobby` and `src/client/matchmaking`, backed by new runtime server-config helpers and parsing tests.
 - Added migrated page-navigation shell:
   `src/ui/navigation/PageRouter.ts` and updated `AppUiRoot` now provide page switching compatibility (`window.showPage`, `window.currentPageId`) with decoupled navigation logic.
+- Added migrated server control-plane foundation:
+  room directory lifecycle, persistent-id registry, and external game-archive API client modules in `src/server/*`, each with dedicated tests.
 
 ### Pending
 
