@@ -102,6 +102,8 @@ This document tracks the migration from `old_project` into the new Bun + Vite + 
   `src/server/DeterministicGameSession.ts` applies queued turns through migrated execution/store logic for server-side deterministic snapshots, and `GameServerRuntime` can now wire snapshot callbacks each tick.
 - Added migrated client service foundation (non-UI):
   typed platform detection, API base resolution, JWT auth/session client, and public API client modules in `src/client/*` with regression tests.
+- Added migrated lobby/matchmaking transport services (non-UI):
+  typed public lobby socket + matchmaking client transport modules in `src/client/lobby` and `src/client/matchmaking`, backed by new runtime server-config helpers and parsing tests.
 
 ### Pending
 
