@@ -23,6 +23,9 @@ export class AppUiRoot {
   private readonly root: HTMLElement;
   private readonly hudMount: HTMLElement;
   private readonly statusValue: HTMLElement;
+  private readonly accountStatusValue: HTMLElement | null;
+  private readonly lobbyStatusValue: HTMLElement | null;
+  private readonly leaderboardStatusValue: HTMLElement | null;
   private readonly connectButton: HTMLButtonElement | null;
   private readonly disconnectButton: HTMLButtonElement | null;
   private readonly hasLiveTransport: boolean;
@@ -58,13 +61,13 @@ export class AppUiRoot {
           <section id="hud-mount"></section>
         </section>
         <section data-page-panel="page-account" id="page-account" class="page-panel" hidden>
-          <div class="placeholder-panel">Account flow migration scaffold</div>
+          <div id="account-status" class="placeholder-panel">Account flow migration scaffold</div>
         </section>
         <section data-page-panel="page-lobby" id="page-lobby" class="page-panel" hidden>
-          <div class="placeholder-panel">Lobby flow migration scaffold</div>
+          <div id="lobby-status" class="placeholder-panel">Lobby flow migration scaffold</div>
         </section>
         <section data-page-panel="page-leaderboard" id="page-leaderboard" class="page-panel" hidden>
-          <div class="placeholder-panel">Leaderboard flow migration scaffold</div>
+          <div id="leaderboard-status" class="placeholder-panel">Leaderboard flow migration scaffold</div>
         </section>
         <section data-page-panel="page-settings" id="page-settings" class="page-panel" hidden>
           <div class="placeholder-panel">Settings flow migration scaffold</div>
@@ -76,6 +79,10 @@ export class AppUiRoot {
 
     const hudMount = host.querySelector<HTMLElement>("#hud-mount");
     const statusValue = host.querySelector<HTMLElement>("#transport-status");
+    const accountStatusValue = host.querySelector<HTMLElement>("#account-status");
+    const lobbyStatusValue = host.querySelector<HTMLElement>("#lobby-status");
+    const leaderboardStatusValue =
+      host.querySelector<HTMLElement>("#leaderboard-status");
     const connectButton =
       host.querySelector<HTMLButtonElement>("#transport-connect");
     const disconnectButton = host.querySelector<HTMLButtonElement>(
@@ -88,6 +95,9 @@ export class AppUiRoot {
 
     this.hudMount = hudMount;
     this.statusValue = statusValue;
+    this.accountStatusValue = accountStatusValue;
+    this.lobbyStatusValue = lobbyStatusValue;
+    this.leaderboardStatusValue = leaderboardStatusValue;
     this.connectButton = connectButton;
     this.disconnectButton = disconnectButton;
 
@@ -124,6 +134,27 @@ export class AppUiRoot {
 
   setStatus(text: string): void {
     this.statusValue.textContent = text;
+  }
+
+  setAccountStatus(text: string): void {
+    if (!this.accountStatusValue) {
+      return;
+    }
+    this.accountStatusValue.textContent = text;
+  }
+
+  setLobbyStatus(text: string): void {
+    if (!this.lobbyStatusValue) {
+      return;
+    }
+    this.lobbyStatusValue.textContent = text;
+  }
+
+  setLeaderboardStatus(text: string): void {
+    if (!this.leaderboardStatusValue) {
+      return;
+    }
+    this.leaderboardStatusValue.textContent = text;
   }
 
   showPage(pageId: string): void {

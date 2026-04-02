@@ -12,6 +12,10 @@ import { WebSocketTurnTransport } from "../../game/network/WebSocketTurnTranspor
 import { Hud } from "../../ui/Hud";
 import { AppUiRoot } from "../../ui/AppUiRoot";
 import { GameWorkerClient } from "../../game/worker/GameWorkerClient";
+import { AuthClient } from "../../client/auth/AuthClient";
+import { PublicApiClient } from "../../client/api/PublicApiClient";
+import { PublicLobbySocket } from "../../client/lobby/PublicLobbySocket";
+import { resolveBrowserRuntimeServerConfig } from "../../client/config/RuntimeServerConfig";
 
 interface AppEvents {
   "debug:queue-turn": undefined;
@@ -41,6 +45,19 @@ export function createGameApp(host: HTMLElement): GameApp {
       disconnectLiveTransport("Live transport disconnected.");
     },
   });
+  const authClient = new AuthClient();
+  const apiClient = new PublicApiClient(authClient);
+  const runtimeServerConfig = resolveBrowserRuntimeServerConfig();
+  const lobbySocket = new PublicLobbySocket(
+    (publicGames) => {
+      uiRoot.setLobbyStatus(`Public lobbies online: ${publicGames.lobbies.length}`);
+    },
+    {
+      configProvider: async () => runtimeServerConfig,
+      reconnectDelayMs: 2500,
+      maxWsAttempts: 3,
+    },
+  );
   let nextTurnNumber = 1;
   let disposed = false;
 
@@ -122,15 +139,47 @@ export function createGameApp(host: HTMLElement): GameApp {
     uiRoot.setStatus(status);
   }
 
+  async function hydrateClientServices(): Promise<void> {
+    uiRoot.setAccountStatus("Checking account session...");
+    const userMe = await apiClient.getUserMe();
+    if (userMe === false) {
+      uiRoot.setAccountStatus("Account not authenticated yet.");
+    } else {
+      const handle = userMe.user.discord?.username ?? userMe.user.email ?? "unknown";
+      uiRoot.setAccountStatus(`Authenticated as ${handle}.`);
+    }
+
+    uiRoot.setLeaderboardStatus("Loading ranked leaderboard...");
+    const leaderboard = await apiClient.fetchPlayerLeaderboard(1);
+    if (leaderboard === false) {
+      uiRoot.setLeaderboardStatus("Leaderboard unavailable.");
+    } else if (leaderboard === "reached_limit") {
+      uiRoot.setLeaderboardStatus("Leaderboard page limit reached.");
+    } else {
+      uiRoot.setLeaderboardStatus(
+        `Top ranked players loaded: ${leaderboard.players.length}.`,
+      );
+    }
+
+    uiRoot.setLobbyStatus("Connecting to lobby updates...");
+    await lobbySocket.start();
+  }
+
   return {
     start: () => {
       void ensureWorkerInitialized().then(() => workerClient.getSnapshot());
+      void hydrateClientServices().catch(() => {
+        uiRoot.setAccountStatus("Account service error.");
+        uiRoot.setLobbyStatus("Lobby service error.");
+        uiRoot.setLeaderboardStatus("Leaderboard service error.");
+      });
     },
     stop: () => {
       if (disposed) {
         return;
       }
       disposed = true;
+      lobbySocket.stop();
       liveTransport?.disconnect();
       detachQueueHandler();
       events.clear();

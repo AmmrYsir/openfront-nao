@@ -108,6 +108,8 @@ This document tracks the migration from `old_project` into the new Bun + Vite + 
   `src/ui/navigation/PageRouter.ts` and updated `AppUiRoot` now provide page switching compatibility (`window.showPage`, `window.currentPageId`) with decoupled navigation logic.
 - Added migrated server control-plane foundation:
   room directory lifecycle, persistent-id registry, and external game-archive API client modules in `src/server/*`, each with dedicated tests.
+- Integrated migrated client services into app bootstrap:
+  `createGameApp` now hydrates account/leaderboard/lobby service status through typed `AuthClient`, `PublicApiClient`, and `PublicLobbySocket` flows in the new UI shell.
 
 ### Pending
 
