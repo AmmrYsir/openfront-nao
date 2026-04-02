@@ -14,9 +14,11 @@ import { join, relative, resolve } from "node:path";
 const root = process.cwd();
 const oldProjectDir = resolve(root, "old_project");
 const oldStaticDir = resolve(oldProjectDir, "static");
+const oldHashedAssetsDir = resolve(oldStaticDir, "_assets");
 const legacyResourcesDir = resolve(root, "public", "legacy", "resources");
 const targetClassicDir = resolve(root, "public", "classic");
 const targetClassicIndexPath = resolve(targetClassicDir, "index.html");
+const targetHashedAssetsDir = resolve(root, "public", "_assets");
 const runtimeGameEnvExpression = `(() => {
         const params = new URLSearchParams(window.location.search);
         const requestedEnv = params.get("classic_env");
@@ -190,16 +192,25 @@ if (existsSync(targetClassicDir)) {
 }
 mkdirSync(targetClassicDir, { recursive: true });
 
+if (existsSync(targetHashedAssetsDir)) {
+  rmSync(targetHashedAssetsDir, { recursive: true, force: true });
+}
+
 const sourceAssetsDir = resolve(oldStaticDir, "assets");
 const sourceSoundsDir = resolve(oldStaticDir, "sounds");
 if (!existsSync(sourceAssetsDir)) {
   console.error("Missing old_project/static/assets. Build output is incomplete.");
   process.exit(1);
 }
+if (!existsSync(oldHashedAssetsDir)) {
+  console.error("Missing old_project/static/_assets. Build output is incomplete.");
+  process.exit(1);
+}
 cpSync(sourceAssetsDir, resolve(targetClassicDir, "assets"), { recursive: true });
 if (existsSync(sourceSoundsDir)) {
   cpSync(sourceSoundsDir, resolve(targetClassicDir, "sounds"), { recursive: true });
 }
+cpSync(oldHashedAssetsDir, targetHashedAssetsDir, { recursive: true });
 
 const sourceIndexPath = resolve(oldStaticDir, "index.html");
 if (!existsSync(sourceIndexPath)) {
