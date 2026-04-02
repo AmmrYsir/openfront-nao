@@ -27,10 +27,14 @@ export class AppUiRoot {
   private readonly lobbyStatusValue: HTMLElement | null;
   private readonly leaderboardStatusValue: HTMLElement | null;
   private readonly settingsStatusValue: HTMLElement | null;
+  private readonly newsStatusValue: HTMLElement | null;
+  private readonly helpStatusValue: HTMLElement | null;
   private readonly accountPanelHost: HTMLElement | null;
   private readonly lobbyPanelHost: HTMLElement | null;
   private readonly leaderboardPanelHost: HTMLElement | null;
   private readonly settingsPanelHost: HTMLElement | null;
+  private readonly newsPanelHost: HTMLElement | null;
+  private readonly helpPanelHost: HTMLElement | null;
   private readonly connectButton: HTMLButtonElement | null;
   private readonly disconnectButton: HTMLButtonElement | null;
   private readonly hasLiveTransport: boolean;
@@ -53,6 +57,8 @@ export class AppUiRoot {
           <button class="nav-menu-item" data-page="page-lobby" type="button">Lobby</button>
           <button class="nav-menu-item" data-page="page-leaderboard" type="button">Leaderboard</button>
           <button class="nav-menu-item" data-page="page-settings" type="button">Settings</button>
+          <button class="nav-menu-item" data-page="page-news" type="button">News</button>
+          <button class="nav-menu-item" data-page="page-help" type="button">Help</button>
         </nav>
         <section data-page-panel="page-play" id="page-play" class="page-panel active">
           <section class="transport-panel">
@@ -93,6 +99,20 @@ export class AppUiRoot {
           </div>
           <div id="settings-panel-host"></div>
         </section>
+        <section data-page-panel="page-news" id="page-news" class="page-panel" hidden>
+          <div class="panel-status-row">
+            <span class="panel-status-label">News status</span>
+            <span id="news-status" class="panel-status-value">Idle.</span>
+          </div>
+          <div id="news-panel-host"></div>
+        </section>
+        <section data-page-panel="page-help" id="page-help" class="page-panel" hidden>
+          <div class="panel-status-row">
+            <span class="panel-status-label">Help status</span>
+            <span id="help-status" class="panel-status-value">Idle.</span>
+          </div>
+          <div id="help-panel-host"></div>
+        </section>
       </div>
     `;
 
@@ -106,6 +126,8 @@ export class AppUiRoot {
       host.querySelector<HTMLElement>("#leaderboard-status");
     const settingsStatusValue =
       host.querySelector<HTMLElement>("#settings-status");
+    const newsStatusValue = host.querySelector<HTMLElement>("#news-status");
+    const helpStatusValue = host.querySelector<HTMLElement>("#help-status");
     const accountPanelHost =
       host.querySelector<HTMLElement>("#account-panel-host");
     const lobbyPanelHost = host.querySelector<HTMLElement>("#lobby-panel-host");
@@ -114,6 +136,8 @@ export class AppUiRoot {
     );
     const settingsPanelHost =
       host.querySelector<HTMLElement>("#settings-panel-host");
+    const newsPanelHost = host.querySelector<HTMLElement>("#news-panel-host");
+    const helpPanelHost = host.querySelector<HTMLElement>("#help-panel-host");
     const connectButton =
       host.querySelector<HTMLButtonElement>("#transport-connect");
     const disconnectButton = host.querySelector<HTMLButtonElement>(
@@ -130,10 +154,14 @@ export class AppUiRoot {
     this.lobbyStatusValue = lobbyStatusValue;
     this.leaderboardStatusValue = leaderboardStatusValue;
     this.settingsStatusValue = settingsStatusValue;
+    this.newsStatusValue = newsStatusValue;
+    this.helpStatusValue = helpStatusValue;
     this.accountPanelHost = accountPanelHost;
     this.lobbyPanelHost = lobbyPanelHost;
     this.leaderboardPanelHost = leaderboardPanelHost;
     this.settingsPanelHost = settingsPanelHost;
+    this.newsPanelHost = newsPanelHost;
+    this.helpPanelHost = helpPanelHost;
     this.connectButton = connectButton;
     this.disconnectButton = disconnectButton;
 
@@ -200,6 +228,20 @@ export class AppUiRoot {
     this.settingsStatusValue.textContent = text;
   }
 
+  setNewsStatus(text: string): void {
+    if (!this.newsStatusValue) {
+      return;
+    }
+    this.newsStatusValue.textContent = text;
+  }
+
+  setHelpStatus(text: string): void {
+    if (!this.helpStatusValue) {
+      return;
+    }
+    this.helpStatusValue.textContent = text;
+  }
+
   getAccountPanelHost(): HTMLElement {
     if (!this.accountPanelHost) {
       throw new Error("Missing account panel host.");
@@ -226,6 +268,20 @@ export class AppUiRoot {
       throw new Error("Missing settings panel host.");
     }
     return this.settingsPanelHost;
+  }
+
+  getNewsPanelHost(): HTMLElement {
+    if (!this.newsPanelHost) {
+      throw new Error("Missing news panel host.");
+    }
+    return this.newsPanelHost;
+  }
+
+  getHelpPanelHost(): HTMLElement {
+    if (!this.helpPanelHost) {
+      throw new Error("Missing help panel host.");
+    }
+    return this.helpPanelHost;
   }
 
   showPage(pageId: string): void {

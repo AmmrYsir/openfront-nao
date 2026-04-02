@@ -126,10 +126,13 @@ This document tracks the migration from `old_project` into the new Bun + Vite + 
   `src/client/matchmaking/RankedMatchmakingSession.ts` now composes `MatchmakingClient` with queue/status/ready polling logic, and the lobby page controller integrates queue controls without embedding transport internals.
 - Migrated legacy client safety/history utilities:
   `MultiTabSessionGuard` now protects against multi-tab conflicts with explicit lifecycle wiring, and `LocalGameHistoryStore` centralizes local replay history persistence.
+- Migrated help/news support surfaces into modular pages:
+  the new UI shell now includes dedicated News + Help pages with migrated changelog and troubleshooting/keybind guidance, replacing modal-only legacy coupling.
 
 ### Pending
 
-- Legacy specialty modals (help/store/news/troubleshooting) remain in `old_project/src/client` and are separate from core runtime migration.
+- Legacy commerce/cosmetic purchase surface (`Store`, payment checkout UI) is intentionally deferred from this core migration pass.
+- Ads/InGamePromo behavior remains untouched per migration constraints.
 
 ## File-by-File Migration Order
 

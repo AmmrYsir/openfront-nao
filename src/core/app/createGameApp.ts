@@ -22,8 +22,10 @@ import { UserPreferencesStore } from "../../client/settings/UserPreferencesStore
 import { MultiTabSessionGuard } from "../../client/session/MultiTabSessionGuard";
 import {
   AccountPageController,
+  HelpPageController,
   LeaderboardPageController,
   LobbyPageController,
+  NewsPageController,
   SettingsPageController,
 } from "../../ui/pages";
 
@@ -119,6 +121,14 @@ export function createGameApp(host: HTMLElement): GameApp {
     apiClient,
     onStatus: (status) => uiRoot.setSettingsStatus(status),
   });
+  const newsPageController = new NewsPageController({
+    host: uiRoot.getNewsPanelHost(),
+    onStatus: (status) => uiRoot.setNewsStatus(status),
+  });
+  const helpPageController = new HelpPageController({
+    host: uiRoot.getHelpPanelHost(),
+    onStatus: (status) => uiRoot.setHelpStatus(status),
+  });
 
   const queueSampleTurn = async (): Promise<void> => {
     uiRoot.setStatus("Queueing local sample turn...");
@@ -205,6 +215,8 @@ export function createGameApp(host: HTMLElement): GameApp {
       await lobbyPageController.hydrate();
     }
     await settingsPageController.hydrate();
+    await newsPageController.hydrate();
+    helpPageController.hydrate();
 
     uiRoot.setLobbyStatus("Connecting to lobby updates...");
     await lobbySocket.start();
@@ -223,6 +235,8 @@ export function createGameApp(host: HTMLElement): GameApp {
         uiRoot.setLobbyStatus("Lobby service error.");
         uiRoot.setLeaderboardStatus("Leaderboard service error.");
         uiRoot.setSettingsStatus("Settings service error.");
+        uiRoot.setNewsStatus("News service error.");
+        uiRoot.setHelpStatus("Help service error.");
       });
     },
     stop: () => {
@@ -237,6 +251,8 @@ export function createGameApp(host: HTMLElement): GameApp {
       lobbyPageController?.dispose();
       leaderboardPageController.dispose();
       settingsPageController.dispose();
+      newsPageController.dispose();
+      helpPageController.dispose();
       liveTransport?.disconnect();
       detachQueueHandler();
       events.clear();
