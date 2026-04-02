@@ -3,7 +3,11 @@ import type { Turn } from "../contracts/turn";
 import type { GameSessionSnapshot } from "../state/GameSessionStore";
 import type { WorkerToMainMessage } from "./messages";
 
-type PendingResolver = (message: WorkerToMainMessage) => void;
+interface PendingRequest {
+  resolve: (message: WorkerToMainMessage) => void;
+  reject: (error: Error) => void;
+  timeout: ReturnType<typeof setTimeout>;
+}
 
 export interface GameWorkerClientOptions {
   onSnapshot?: (snapshot: GameSessionSnapshot) => void;
@@ -11,7 +15,7 @@ export interface GameWorkerClientOptions {
 
 export class GameWorkerClient {
   private readonly worker: Worker;
-  private readonly pending = new Map<string, PendingResolver>();
+  private readonly pending = new Map<string, PendingRequest>();
   private onSnapshot?: (snapshot: GameSessionSnapshot) => void;
   private initialized = false;
 
@@ -73,6 +77,12 @@ export class GameWorkerClient {
   dispose(): void {
     this.worker.removeEventListener("message", this.handleMessage);
     this.worker.terminate();
+    for (const pendingRequest of this.pending.values()) {
+      clearTimeout(pendingRequest.timeout);
+      pendingRequest.reject(
+        new Error("Worker disposed before request completed."),
+      );
+    }
     this.pending.clear();
   }
 
@@ -85,9 +95,14 @@ export class GameWorkerClient {
   private request(
     message: { type: "init" } | { type: "get_snapshot" } | { type: "enqueue_turn"; turn: Turn },
   ): Promise<WorkerToMainMessage> {
-    return new Promise<WorkerToMainMessage>((resolve) => {
+    return new Promise<WorkerToMainMessage>((resolve, reject) => {
       const id = createRequestId();
-      this.pending.set(id, resolve);
+      const timeout = setTimeout(() => {
+        this.pending.delete(id);
+        reject(new Error(`Worker request timed out: ${message.type}`));
+      }, 8000);
+
+      this.pending.set(id, { resolve, reject, timeout });
       this.worker.postMessage({
         ...message,
         id,
@@ -107,9 +122,12 @@ export class GameWorkerClient {
     }
 
     if (message.id && this.pending.has(message.id)) {
-      const resolver = this.pending.get(message.id);
+      const pendingRequest = this.pending.get(message.id);
       this.pending.delete(message.id);
-      resolver?.(message);
+      if (pendingRequest) {
+        clearTimeout(pendingRequest.timeout);
+        pendingRequest.resolve(message);
+      }
     }
   };
 }

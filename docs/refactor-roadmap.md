@@ -29,6 +29,7 @@ This document tracks the migration from `old_project` into the new Bun + Vite + 
   - `src/game/worker/GameSimulation.worker.ts`
 - Execution migration scaffold (legacy ExecutionManager switch pattern, incrementally):
   - `src/game/execution/IntentExecutionEngine.ts`
+  - `src/game/execution/handlers/*` (modular intent categories)
 - Session/queue state systems:
   - `src/game/state/GameSessionStore.ts`
   - `src/game/systems/TurnQueueSystem.ts`
@@ -50,6 +51,12 @@ This document tracks the migration from `old_project` into the new Bun + Vite + 
 
 - Migrate deterministic core execution from old `src/core` into new `src/game`.
 - Keep protocol compatibility with legacy `Turn` / `Intent` semantics.
+
+### Latest Progression
+
+- Expanded from a minimal execution stub to full typed intent dispatch coverage for all current legacy intent types.
+- Added projected state counters for combat, movement, diplomacy, economy, construction, social, moderation, and configuration flows.
+- Upgraded debug HUD to visualize projected simulation metrics from worker snapshots.
 
 ### Pending
 

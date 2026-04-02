@@ -13,6 +13,21 @@ export class Hud {
   private readonly pausedValue: HTMLElement;
   private readonly spawnCountValue: HTMLElement;
   private readonly lastSpawnTileValue: HTMLElement;
+  private readonly disconnectedClientsValue: HTMLElement;
+  private readonly activeEmbargoValue: HTMLElement;
+  private readonly targetedPlayersValue: HTMLElement;
+  private readonly combatActionsValue: HTMLElement;
+  private readonly movementActionsValue: HTMLElement;
+  private readonly diplomacyActionsValue: HTMLElement;
+  private readonly economyActionsValue: HTMLElement;
+  private readonly constructionActionsValue: HTMLElement;
+  private readonly socialActionsValue: HTMLElement;
+  private readonly moderationActionsValue: HTMLElement;
+  private readonly configActionsValue: HTMLElement;
+  private readonly donatedGoldValue: HTMLElement;
+  private readonly donatedTroopsValue: HTMLElement;
+  private readonly builtUnitsValue: HTMLElement;
+  private readonly lastConfigPatchSizeValue: HTMLElement;
   private readonly queueTurnButton: HTMLButtonElement;
   private readonly queueTurnHandler: () => void;
 
@@ -42,6 +57,21 @@ export class Hud {
             <div><dt>Paused</dt><dd id="hud-paused">false</dd></div>
             <div><dt>Spawned Tiles</dt><dd id="hud-spawn-count">0</dd></div>
             <div><dt>Last Spawn Tile</dt><dd id="hud-last-spawn-tile">n/a</dd></div>
+            <div><dt>Disconnected Clients</dt><dd id="hud-disconnected-clients">0</dd></div>
+            <div><dt>Active Embargos</dt><dd id="hud-active-embargos">0</dd></div>
+            <div><dt>Targeted Players</dt><dd id="hud-targeted-players">0</dd></div>
+            <div><dt>Combat Actions</dt><dd id="hud-actions-combat">0</dd></div>
+            <div><dt>Movement Actions</dt><dd id="hud-actions-movement">0</dd></div>
+            <div><dt>Diplomacy Actions</dt><dd id="hud-actions-diplomacy">0</dd></div>
+            <div><dt>Economy Actions</dt><dd id="hud-actions-economy">0</dd></div>
+            <div><dt>Construction Actions</dt><dd id="hud-actions-construction">0</dd></div>
+            <div><dt>Social Actions</dt><dd id="hud-actions-social">0</dd></div>
+            <div><dt>Moderation Actions</dt><dd id="hud-actions-moderation">0</dd></div>
+            <div><dt>Config Actions</dt><dd id="hud-actions-config">0</dd></div>
+            <div><dt>Donated Gold</dt><dd id="hud-donated-gold">0</dd></div>
+            <div><dt>Donated Troops</dt><dd id="hud-donated-troops">0</dd></div>
+            <div><dt>Built Units</dt><dd id="hud-built-units">0</dd></div>
+            <div><dt>Last Config Patch</dt><dd id="hud-last-config-patch-size">0</dd></div>
           </dl>
         </section>
       </main>
@@ -66,6 +96,42 @@ export class Hud {
     const lastSpawnTileValue = host.querySelector<HTMLElement>(
       "#hud-last-spawn-tile",
     );
+    const disconnectedClientsValue = host.querySelector<HTMLElement>(
+      "#hud-disconnected-clients",
+    );
+    const activeEmbargoValue =
+      host.querySelector<HTMLElement>("#hud-active-embargos");
+    const targetedPlayersValue =
+      host.querySelector<HTMLElement>("#hud-targeted-players");
+    const combatActionsValue =
+      host.querySelector<HTMLElement>("#hud-actions-combat");
+    const movementActionsValue = host.querySelector<HTMLElement>(
+      "#hud-actions-movement",
+    );
+    const diplomacyActionsValue = host.querySelector<HTMLElement>(
+      "#hud-actions-diplomacy",
+    );
+    const economyActionsValue =
+      host.querySelector<HTMLElement>("#hud-actions-economy");
+    const constructionActionsValue = host.querySelector<HTMLElement>(
+      "#hud-actions-construction",
+    );
+    const socialActionsValue =
+      host.querySelector<HTMLElement>("#hud-actions-social");
+    const moderationActionsValue = host.querySelector<HTMLElement>(
+      "#hud-actions-moderation",
+    );
+    const configActionsValue =
+      host.querySelector<HTMLElement>("#hud-actions-config");
+    const donatedGoldValue =
+      host.querySelector<HTMLElement>("#hud-donated-gold");
+    const donatedTroopsValue = host.querySelector<HTMLElement>(
+      "#hud-donated-troops",
+    );
+    const builtUnitsValue = host.querySelector<HTMLElement>("#hud-built-units");
+    const lastConfigPatchSizeValue = host.querySelector<HTMLElement>(
+      "#hud-last-config-patch-size",
+    );
     const queueTurnButton =
       host.querySelector<HTMLButtonElement>("#queue-turn-btn");
 
@@ -81,6 +147,21 @@ export class Hud {
       !pausedValue ||
       !spawnCountValue ||
       !lastSpawnTileValue ||
+      !disconnectedClientsValue ||
+      !activeEmbargoValue ||
+      !targetedPlayersValue ||
+      !combatActionsValue ||
+      !movementActionsValue ||
+      !diplomacyActionsValue ||
+      !economyActionsValue ||
+      !constructionActionsValue ||
+      !socialActionsValue ||
+      !moderationActionsValue ||
+      !configActionsValue ||
+      !donatedGoldValue ||
+      !donatedTroopsValue ||
+      !builtUnitsValue ||
+      !lastConfigPatchSizeValue ||
       !queueTurnButton
     ) {
       throw new Error("Failed to initialize HUD.");
@@ -97,6 +178,21 @@ export class Hud {
     this.pausedValue = pausedValue;
     this.spawnCountValue = spawnCountValue;
     this.lastSpawnTileValue = lastSpawnTileValue;
+    this.disconnectedClientsValue = disconnectedClientsValue;
+    this.activeEmbargoValue = activeEmbargoValue;
+    this.targetedPlayersValue = targetedPlayersValue;
+    this.combatActionsValue = combatActionsValue;
+    this.movementActionsValue = movementActionsValue;
+    this.diplomacyActionsValue = diplomacyActionsValue;
+    this.economyActionsValue = economyActionsValue;
+    this.constructionActionsValue = constructionActionsValue;
+    this.socialActionsValue = socialActionsValue;
+    this.moderationActionsValue = moderationActionsValue;
+    this.configActionsValue = configActionsValue;
+    this.donatedGoldValue = donatedGoldValue;
+    this.donatedTroopsValue = donatedTroopsValue;
+    this.builtUnitsValue = builtUnitsValue;
+    this.lastConfigPatchSizeValue = lastConfigPatchSizeValue;
     this.queueTurnButton = queueTurnButton;
     this.queueTurnHandler = onQueueTurnRequested;
     this.queueTurnButton.addEventListener("click", this.queueTurnHandler);
@@ -120,6 +216,47 @@ export class Hud {
     this.spawnCountValue.textContent = renderNumber(snapshot.spawnedTileCount);
     this.lastSpawnTileValue.textContent =
       snapshot.lastSpawnTile === null ? "n/a" : String(snapshot.lastSpawnTile);
+    this.disconnectedClientsValue.textContent = renderNumber(
+      snapshot.disconnectedClientCount,
+    );
+    this.activeEmbargoValue.textContent = renderNumber(
+      snapshot.activeEmbargoCount,
+    );
+    this.targetedPlayersValue.textContent = renderNumber(
+      snapshot.targetedPlayerCount,
+    );
+    this.combatActionsValue.textContent = renderNumber(
+      snapshot.actionCounters.combat,
+    );
+    this.movementActionsValue.textContent = renderNumber(
+      snapshot.actionCounters.movement,
+    );
+    this.diplomacyActionsValue.textContent = renderNumber(
+      snapshot.actionCounters.diplomacy,
+    );
+    this.economyActionsValue.textContent = renderNumber(
+      snapshot.actionCounters.economy,
+    );
+    this.constructionActionsValue.textContent = renderNumber(
+      snapshot.actionCounters.construction,
+    );
+    this.socialActionsValue.textContent = renderNumber(
+      snapshot.actionCounters.social,
+    );
+    this.moderationActionsValue.textContent = renderNumber(
+      snapshot.actionCounters.moderation,
+    );
+    this.configActionsValue.textContent = renderNumber(
+      snapshot.actionCounters.configuration,
+    );
+    this.donatedGoldValue.textContent = renderNumber(snapshot.donatedGoldTotal);
+    this.donatedTroopsValue.textContent = renderNumber(
+      snapshot.donatedTroopsTotal,
+    );
+    this.builtUnitsValue.textContent = renderNumber(snapshot.builtUnitTotal);
+    this.lastConfigPatchSizeValue.textContent = renderNumber(
+      snapshot.lastConfigPatchSize,
+    );
   }
 
   dispose(): void {
