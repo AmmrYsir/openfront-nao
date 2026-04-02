@@ -1,0 +1,72 @@
+# Openfront Refactor Roadmap
+
+This document tracks the migration from `old_project` into the new Bun + Vite + TypeScript runtime.
+
+## Guiding Rules
+
+- Keep simulation state outside rendering/UI.
+- Keep worker boundary explicit for deterministic tick processing.
+- Migrate behavior first, then split and simplify module responsibilities.
+- Keep the app runnable on every migration slice.
+
+## Current Status
+
+### Completed
+
+- New bootstrap and runtime shell:
+  - `src/core/app/createGameApp.ts`
+  - `src/core/loop/FixedStepLoop.ts`
+  - `src/ui/Hud.ts`
+- Typed event bus:
+  - `src/core/events/EventBus.ts`
+- Asset URL/manifest resolution migrated from legacy:
+  - `src/core/assets/assetUrl.ts`
+- Turn contract baseline introduced from legacy intent model:
+  - `src/game/contracts/turn.ts`
+- Worker-driven simulation bridge:
+  - `src/game/worker/messages.ts`
+  - `src/game/worker/GameWorkerClient.ts`
+  - `src/game/worker/GameSimulation.worker.ts`
+- Execution migration scaffold (legacy ExecutionManager switch pattern, incrementally):
+  - `src/game/execution/IntentExecutionEngine.ts`
+- Session/queue state systems:
+  - `src/game/state/GameSessionStore.ts`
+  - `src/game/systems/TurnQueueSystem.ts`
+- Utility migration:
+  - `src/utils/formatNumbers.ts` (ported from legacy number rendering rules)
+  - `src/utils/pseudoRandom.ts` (ported deterministic RNG utility)
+- Name placement algorithm extracted from old client graphics:
+  - `src/game/systems/names/NamePlacement.ts`
+- Runtime protocol validation parity with legacy turn/intents:
+  - `src/game/contracts/intentSchemas.ts`
+- Username/clan-tag validator migration decoupled from UI layer:
+  - `src/game/validation/username.ts`
+- Map loading pipeline extraction:
+  - `src/game/maps/GameMapLoader.ts`
+  - `src/game/maps/FetchGameMapLoader.ts`
+  - `src/game/maps/TerrainMapLoader.ts`
+
+### In Progress
+
+- Migrate deterministic core execution from old `src/core` into new `src/game`.
+- Keep protocol compatibility with legacy `Turn` / `Intent` semantics.
+
+### Pending
+
+- Move legacy map loading pipeline (`GameMapLoader`, `TerrainMapLoader`) into `src/game/maps`.
+- Migrate and split `ExecutionManager` and execution classes into grouped systems.
+- Replace cross-layer dependencies (`client -> core` and `core -> client`) with domain ports.
+- Introduce UI composition root for overlays/HUD/menus.
+- Migrate multiplayer transport and server message schema handling.
+- Final removal of `old_project` gameplay dependencies.
+
+## File-by-File Migration Order
+
+1. Worker protocol and bridge (done)
+2. Contracts and intent schema parity (partial, in progress)
+3. Map/terrain loading
+4. Core game state (`GameImpl`, `PlayerImpl`) split into entities + systems
+5. Execution engine and intent dispatch
+6. UI adapters (renderer + overlays)
+7. Network transport integration
+8. Cleanup, dead-code removal, and strict type hardening

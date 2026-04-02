@@ -1,18 +1,15 @@
 import { EventBus } from "../events/EventBus";
-import { FixedStepLoop } from "../loop/FixedStepLoop";
 import {
   type ClientId,
   type Turn,
   createSampleTurn,
 } from "../../game/contracts/turn";
-import { GameSessionStore } from "../../game/state/GameSessionStore";
-import { TurnQueueSystem } from "../../game/systems/TurnQueueSystem";
 import { Hud } from "../../ui/Hud";
+import { GameWorkerClient } from "../../game/worker/GameWorkerClient";
 
 interface AppEvents {
   "debug:queue-turn": undefined;
   "turn:queued": Turn;
-  "turn:processed": Turn;
 }
 
 export interface GameApp {
@@ -20,19 +17,22 @@ export interface GameApp {
   stop: () => void;
 }
 
-const STEP_MS = 100;
-const MAX_TURNS_PER_STEP = 4;
-const DEBUG_CLIENT_ID: ClientId = "local-debug-client";
+const DEBUG_CLIENT_ID: ClientId = "DBG00001";
 
 export function createGameApp(host: HTMLElement): GameApp {
   const events = new EventBus<AppEvents>();
-  const sessionStore = new GameSessionStore();
+  const workerClient = new GameWorkerClient();
   let nextTurnNumber = 1;
+  let disposed = false;
 
-  const queueSampleTurn = (): void => {
+  const queueSampleTurn = async (): Promise<void> => {
+    if (!workerClient.isInitialized()) {
+      await workerClient.initialize();
+    }
+
     const turn = createSampleTurn(nextTurnNumber, DEBUG_CLIENT_ID);
     nextTurnNumber += 1;
-    sessionStore.enqueueTurn(turn);
+    await workerClient.enqueueTurn(turn);
     events.emit("turn:queued", turn);
   };
 
@@ -40,40 +40,27 @@ export function createGameApp(host: HTMLElement): GameApp {
     events.emit("debug:queue-turn", undefined);
   });
 
-  const turnQueueSystem = new TurnQueueSystem(sessionStore, {
-    maxTurnsPerStep: MAX_TURNS_PER_STEP,
-    applyTurn: (turn) => {
-      events.emit("turn:processed", turn);
-    },
+  workerClient.setSnapshotListener((snapshot) => {
+    hud.render(snapshot);
   });
 
-  const loop = new FixedStepLoop({
-    stepMs: STEP_MS,
-    maxCatchUpSteps: 5,
-    onStep: () => {
-      turnQueueSystem.step();
-      hud.render(sessionStore.snapshot());
-    },
-    onFrame: () => {
-      // Keep frame hook for future camera interpolation and renderer updates.
-    },
+  const detachQueueHandler = events.on("debug:queue-turn", async () => {
+    await queueSampleTurn();
   });
-
-  const detachQueueHandler = events.on("debug:queue-turn", () => {
-    queueSampleTurn();
-  });
-
-  hud.render(sessionStore.snapshot());
 
   return {
     start: () => {
-      loop.start();
+      void workerClient.initialize().then(() => workerClient.getSnapshot());
     },
     stop: () => {
-      loop.stop();
+      if (disposed) {
+        return;
+      }
+      disposed = true;
       detachQueueHandler();
       events.clear();
       hud.dispose();
+      workerClient.dispose();
     },
   };
 }

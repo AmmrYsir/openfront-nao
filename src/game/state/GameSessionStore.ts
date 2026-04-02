@@ -5,8 +5,13 @@ export interface GameSessionSnapshot {
   pendingTurnCount: number;
   processedTurnCount: number;
   totalIntentCount: number;
+  supportedIntentCount: number;
+  unsupportedIntentCount: number;
   lastHash: number | null;
   lastProcessedIntentType: string | null;
+  paused: boolean;
+  spawnedTileCount: number;
+  lastSpawnTile: number | null;
 }
 
 export class GameSessionStore {
@@ -14,8 +19,13 @@ export class GameSessionStore {
   private turnNumber = 0;
   private processedTurnCount = 0;
   private totalIntentCount = 0;
+  private supportedIntentCount = 0;
+  private unsupportedIntentCount = 0;
   private lastHash: number | null = null;
   private lastProcessedIntentType: string | null = null;
+  private paused = false;
+  private spawnedTiles = new Set<number>();
+  private lastSpawnTile: number | null = null;
 
   enqueueTurn(turn: Turn): void {
     this.pendingTurns.push(turn);
@@ -41,14 +51,36 @@ export class GameSessionStore {
         : this.lastProcessedIntentType;
   }
 
+  markIntentSupported(): void {
+    this.supportedIntentCount += 1;
+  }
+
+  markIntentUnsupported(): void {
+    this.unsupportedIntentCount += 1;
+  }
+
+  setPaused(paused: boolean): void {
+    this.paused = paused;
+  }
+
+  markSpawn(tile: number): void {
+    this.spawnedTiles.add(tile);
+    this.lastSpawnTile = tile;
+  }
+
   snapshot(): GameSessionSnapshot {
     return {
       turnNumber: this.turnNumber,
       pendingTurnCount: this.pendingTurns.length,
       processedTurnCount: this.processedTurnCount,
       totalIntentCount: this.totalIntentCount,
+      supportedIntentCount: this.supportedIntentCount,
+      unsupportedIntentCount: this.unsupportedIntentCount,
       lastHash: this.lastHash,
       lastProcessedIntentType: this.lastProcessedIntentType,
+      paused: this.paused,
+      spawnedTileCount: this.spawnedTiles.size,
+      lastSpawnTile: this.lastSpawnTile,
     };
   }
 }
