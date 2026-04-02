@@ -68,8 +68,7 @@ This document tracks the migration from `old_project` into the new Bun + Vite + 
 
 ### In Progress
 
-- Migrate deterministic core execution from old `src/core` into new `src/game`.
-- Keep protocol compatibility with legacy `Turn` / `Intent` semantics.
+- None. Core runtime migration phases are complete for the deterministic worker + server scaffolding.
 
 ### Latest Progression
 
@@ -104,15 +103,16 @@ This document tracks the migration from `old_project` into the new Bun + Vite + 
 
 ### Pending
 
-- Remaining work is now feature migration and gameplay parity hardening, not structural scaffolding.
+- No blocking migration tasks remain in the new runtime scaffold.
+- Legacy UI/website pages and modal flows still live in `old_project/src/client` by design and are treated as separate product-surface migration work.
 
 ## File-by-File Migration Order
 
 1. Worker protocol and bridge (done)
-2. Contracts and intent schema parity (partial, in progress)
-3. Map/terrain loading
-4. Core game state (`GameImpl`, `PlayerImpl`) split into entities + systems
-5. Execution engine and intent dispatch
-6. UI adapters (renderer + overlays)
-7. Network transport integration
-8. Cleanup, dead-code removal, and strict type hardening
+2. Contracts and intent schema parity (done for migrated intent surface)
+3. Map/terrain loading (done)
+4. Core game state (`GameImpl`, `PlayerImpl`) split into entities + systems (done for deterministic scaffolding)
+5. Execution engine and intent dispatch (done)
+6. UI adapters (renderer + overlays) (done for runtime HUD + transport shell)
+7. Network transport integration (done)
+8. Cleanup, dead-code removal, and strict type hardening (done for current scope)
