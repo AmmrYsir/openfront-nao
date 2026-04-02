@@ -134,13 +134,12 @@ This document tracks the migration from `old_project` into the new Bun + Vite + 
   `ClassicPageController` embeds the full legacy game UI from `public/classic/index.html` inside the new shell, with dedicated build/test scripts (`classic:build`, `classic:test`, `test:all`, `build:all`) and compatibility rewrite logic for static asset paths.
 - Added phase-3 native mode/modal migration slice:
   new `GameModeSelector` and `SinglePlayerModal` modules are now integrated into the play page shell, backed by typed `LocalServer` solo session bootstrap logic and local history persistence.
+- Added phase-4 classic-only frontend integration:
+  runtime boot now mounts directly into `ClassicPageController` and `AppUiRoot` classic shell, removing active usage of the experimental Command HUD/play-shell flow while preserving migrated backend/postgres infrastructure.
 
 ### Pending
 
-- Singleplayer gameplay flow parity is not yet migrated:
-  - `GameModeSelector` + `SinglePlayerModal` surface
-  - local solo bootstrap path (`LocalServer`/singleplayer archive route integration)
-  - native in-game renderer/layer parity (classic bridge provides fallback playability in the meantime)
+- Native renderer/layer parity remains intentionally deferred while classic-only frontend mode is active.
 - Legacy commerce/cosmetic purchase surface (`Store`, payment checkout UI) is intentionally deferred from this core migration pass.
 - Ads/InGamePromo behavior remains untouched per migration constraints.
 

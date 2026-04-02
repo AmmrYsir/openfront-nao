@@ -5,6 +5,14 @@ interface ClassicPageControllerOptions {
 
 const CLASSIC_APP_PATH = "/classic/index.html";
 
+function resolveClassicAppPath(): string {
+  const search = typeof window === "undefined" ? "" : window.location.search;
+  if (!search) {
+    return CLASSIC_APP_PATH;
+  }
+  return `${CLASSIC_APP_PATH}${search}`;
+}
+
 export class ClassicPageController {
   private readonly host: HTMLElement;
   private readonly onStatus?: (status: string) => void;
@@ -22,7 +30,7 @@ export class ClassicPageController {
   async hydrate(): Promise<void> {
     this.onStatus?.("Loading classic OpenFront UI...");
     if (this.iframe) {
-      this.iframe.src = CLASSIC_APP_PATH;
+      this.iframe.src = resolveClassicAppPath();
     }
   }
 
@@ -39,7 +47,7 @@ export class ClassicPageController {
         <header class="panel-head">
           <h2>Classic OpenFront</h2>
           <p class="panel-subtitle">
-            Full legacy gameplay frontend embedded from this repository for parity while refactor phases continue.
+            Primary gameplay UI running from the migrated classic frontend bundle.
           </p>
         </header>
         <div class="row-inline">
@@ -50,7 +58,7 @@ export class ClassicPageController {
           data-classic-iframe
           title="Classic OpenFront"
           src="about:blank"
-          style="width: 100%; height: 78vh; border: 1px solid rgba(120, 145, 200, 0.45); border-radius: 12px; background: #01040b;"
+          style="width: 100%; height: 82vh; border: 1px solid rgba(120, 145, 200, 0.45); border-radius: 12px; background: #01040b;"
         ></iframe>
       </section>
     `;
@@ -74,11 +82,11 @@ export class ClassicPageController {
       return;
     }
     this.onStatus?.("Reloading classic UI...");
-    this.iframe.src = CLASSIC_APP_PATH;
+    this.iframe.src = resolveClassicAppPath();
   };
 
   private readonly handleOpen = (): void => {
-    window.open(CLASSIC_APP_PATH, "_blank", "noopener,noreferrer");
+    window.open(resolveClassicAppPath(), "_blank", "noopener,noreferrer");
   };
 
   private readonly handleLoad = (): void => {

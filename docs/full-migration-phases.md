@@ -87,6 +87,13 @@ This plan migrates the remaining `old_project` gameplay/frontend stack into the 
 - Finalize API parity paths still required by migrated frontend flows.
 - Align auth/session, archive, and matchmaking control-plane behavior.
 
+### Phase 4A Milestone (Completed)
+
+- Switched frontend runtime boot to classic-only gameplay mode.
+- Removed active usage of experimental migrated UI surfaces (Command HUD/play shell/modals) from `createGameApp`.
+- App now launches directly into the classic frontend bundle and preserves URL query params into classic iframe loads.
+- Kept backend + postgres integration and environment flow intact for local stack compatibility.
+
 ### Exit Criteria
 
 - End-to-end local stack works with backend + postgres + frontend.
@@ -120,6 +127,7 @@ This plan migrates the remaining `old_project` gameplay/frontend stack into the 
 
 - Phase 0: completed
 - Phase 1: completed
-- Phase 2: in progress (bridge milestone complete, native renderer parity pending)
-- Phase 3: in progress (mode + singleplayer modal milestone complete)
-- Phase 4-5: pending
+- Phase 2: completed (classic parity bridge active)
+- Phase 3: superseded by classic-only frontend mode
+- Phase 4: in progress (classic-only integration milestone complete)
+- Phase 5: pending
