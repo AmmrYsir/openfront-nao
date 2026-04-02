@@ -1,3 +1,4 @@
+import type { PublicApiClient } from "../../client/api/PublicApiClient";
 import type {
   UserPreferences,
   UserPreferencesStore,
@@ -6,12 +7,14 @@ import type {
 interface SettingsPageControllerOptions {
   host: HTMLElement;
   preferencesStore: UserPreferencesStore;
+  apiClient?: PublicApiClient;
   onStatus?: (status: string) => void;
 }
 
 export class SettingsPageController {
   private readonly host: HTMLElement;
   private readonly preferencesStore: UserPreferencesStore;
+  private readonly apiClient?: PublicApiClient;
   private readonly onStatus?: (status: string) => void;
 
   private usernameInput: HTMLInputElement | null = null;
@@ -27,6 +30,7 @@ export class SettingsPageController {
   constructor(options: SettingsPageControllerOptions) {
     this.host = options.host;
     this.preferencesStore = options.preferencesStore;
+    this.apiClient = options.apiClient;
     this.onStatus = options.onStatus;
 
     this.render();
@@ -34,7 +38,17 @@ export class SettingsPageController {
     this.applySnapshot(this.preferencesStore.getSnapshot());
   }
 
-  hydrate(): void {
+  async hydrate(): Promise<void> {
+    if (this.apiClient) {
+      const remotePreferences = await this.apiClient.getMyPreferences();
+      if (remotePreferences !== false) {
+        this.preferencesStore.replaceAll(remotePreferences);
+        this.pushStatus("Loaded settings from account profile.");
+      } else {
+        this.pushStatus("Using local settings (no profile sync).");
+      }
+    }
+
     this.applySnapshot(this.preferencesStore.getSnapshot());
   }
 
@@ -181,34 +195,56 @@ export class SettingsPageController {
   };
 
   private readonly handleSaveIdentity = (): void => {
-    const result = this.preferencesStore.updateIdentity({
-      username: this.usernameInput?.value ?? "",
-      clanTag: this.clanTagInput?.value ?? "",
-    });
+    void (async () => {
+      const result = this.preferencesStore.updateIdentity({
+        username: this.usernameInput?.value ?? "",
+        clanTag: this.clanTagInput?.value ?? "",
+      });
 
-    if (!result.ok) {
-      this.pushStatus(result.message);
-      return;
-    }
+      if (!result.ok) {
+        this.pushStatus(result.message);
+        return;
+      }
 
-    this.applySnapshot(this.preferencesStore.getSnapshot());
-    this.pushStatus("Profile settings saved locally.");
+      await this.syncPreferencesToApi();
+      this.applySnapshot(this.preferencesStore.getSnapshot());
+      this.pushStatus("Profile settings saved.");
+    })();
   };
 
   private readonly handleSaveRuntime = (): void => {
-    const language = this.languageSelect?.value ?? "en";
-    const darkMode = this.darkModeToggle?.checked ?? false;
-    const specialEffects = this.fxToggle?.checked ?? true;
-    const anonymousNames = this.anonymousToggle?.checked ?? false;
+    void (async () => {
+      const language = this.languageSelect?.value ?? "en";
+      const darkMode = this.darkModeToggle?.checked ?? false;
+      const specialEffects = this.fxToggle?.checked ?? true;
+      const anonymousNames = this.anonymousToggle?.checked ?? false;
 
-    this.preferencesStore.updateSimple({
-      language,
-      darkMode,
-      specialEffects,
-      anonymousNames,
-    });
-    this.pushStatus("Runtime settings saved locally.");
+      this.preferencesStore.updateSimple({
+        language,
+        darkMode,
+        specialEffects,
+        anonymousNames,
+      });
+      await this.syncPreferencesToApi();
+      this.pushStatus("Runtime settings saved.");
+    })();
   };
+
+  private async syncPreferencesToApi(): Promise<void> {
+    if (!this.apiClient) {
+      return;
+    }
+
+    const saved = await this.apiClient.saveMyPreferences(
+      this.preferencesStore.getSnapshot(),
+    );
+    if (saved === false) {
+      this.pushStatus("Saved locally. Sign in to sync settings.");
+      return;
+    }
+
+    this.preferencesStore.replaceAll(saved);
+  }
 
   private pushStatus(status: string): void {
     this.onStatus?.(status);

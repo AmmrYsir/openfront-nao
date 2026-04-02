@@ -118,10 +118,13 @@ This document tracks the migration from `old_project` into the new Bun + Vite + 
   account, lobby directory, leaderboard, and settings panels now run from `src/ui/pages/*` and are integrated by `createGameApp` through typed `src/client/*` service modules.
 - Added typed local user preferences migration:
   `src/client/settings/UserPreferencesStore.ts` now centralizes username/clan/language/runtime preference persistence and validation from legacy settings behavior.
+- Added PostgreSQL-backed profile/runtime preference API:
+  backend now supports `/users/@me/preferences` read/write with typed validation and persisted preference rows.
+- Connected settings UI to backend preference sync:
+  settings now load from and save to account profile when authenticated, while preserving local-first fallback behavior.
 
 ### Pending
 
-- Backend persistence/sync for profile + runtime preferences is not yet wired; current settings controller persists locally.
 - Legacy specialty modals (help/store/news/troubleshooting) remain in `old_project/src/client` and are separate from core runtime migration.
 
 ## File-by-File Migration Order

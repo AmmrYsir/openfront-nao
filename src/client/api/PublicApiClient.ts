@@ -46,11 +46,21 @@ const GameRecordSchema = z.object({
   }),
 });
 
+const UserPreferencesSchema = z.object({
+  username: z.string(),
+  clanTag: z.string(),
+  language: z.string(),
+  darkMode: z.boolean(),
+  specialEffects: z.boolean(),
+  anonymousNames: z.boolean(),
+});
+
 export type RankedLeaderboardResponse = z.infer<
   typeof RankedLeaderboardResponseSchema
 >;
 export type UserMeResponse = z.infer<typeof UserMeResponseSchema>;
 export type GameRecord = z.infer<typeof GameRecordSchema>;
+export type UserPreferencesResponse = z.infer<typeof UserPreferencesSchema>;
 
 export class PublicApiClient {
   private readonly authClient: AuthClient;
@@ -145,6 +155,60 @@ export class PublicApiClient {
       }
 
       return parsed.data;
+    } catch {
+      return false;
+    }
+  }
+
+  async getMyPreferences(): Promise<UserPreferencesResponse | false> {
+    try {
+      const auth = await this.authClient.userAuth();
+      if (!auth) {
+        return false;
+      }
+
+      const response = await fetch(resolveApiBase() + "/users/@me/preferences", {
+        method: "GET",
+        headers: {
+          authorization: `Bearer ${auth.jwt}`,
+        },
+      });
+      if (!response.ok) {
+        return false;
+      }
+
+      const json = await response.json();
+      const parsed = UserPreferencesSchema.safeParse(json);
+      return parsed.success ? parsed.data : false;
+    } catch {
+      return false;
+    }
+  }
+
+  async saveMyPreferences(
+    preferences: UserPreferencesResponse,
+  ): Promise<UserPreferencesResponse | false> {
+    try {
+      const auth = await this.authClient.userAuth();
+      if (!auth) {
+        return false;
+      }
+
+      const response = await fetch(resolveApiBase() + "/users/@me/preferences", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${auth.jwt}`,
+        },
+        body: JSON.stringify(preferences),
+      });
+      if (!response.ok) {
+        return false;
+      }
+
+      const json = await response.json();
+      const parsed = UserPreferencesSchema.safeParse(json);
+      return parsed.success ? parsed.data : false;
     } catch {
       return false;
     }

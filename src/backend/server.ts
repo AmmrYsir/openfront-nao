@@ -1,4 +1,4 @@
-import { createServer } from "node:http";
+import { createServer, type IncomingMessage } from "node:http";
 import { z } from "zod";
 import { createRequestId } from "../utils/id";
 import { resolveBackendConfig } from "./config/env";
@@ -9,10 +9,12 @@ import { PostgresGameRecordRepository } from "./repositories/postgres/PostgresGa
 import { PostgresLeaderboardRepository } from "./repositories/postgres/PostgresLeaderboardRepository";
 import { PostgresLobbyRepository } from "./repositories/postgres/PostgresLobbyRepository";
 import { PostgresUserRepository } from "./repositories/postgres/PostgresUserRepository";
+import { PostgresUserPreferencesRepository } from "./repositories/postgres/PostgresUserPreferencesRepository";
 import { AuthService } from "./services/AuthService";
 import { GameService } from "./services/GameService";
 import { LeaderboardService } from "./services/LeaderboardService";
 import { LobbyService } from "./services/LobbyService";
+import { UserPreferencesService } from "./services/UserPreferencesService";
 
 const RefreshBodySchema = z.object({
   persistentID: z.string().min(1).optional(),
@@ -27,6 +29,15 @@ const ArchiveGameSchema = z.object({
   status: z.enum(["finished", "in_progress", "archived"]).optional(),
 });
 
+const UpdatePreferencesSchema = z.object({
+  username: z.string(),
+  clanTag: z.string(),
+  language: z.string(),
+  darkMode: z.boolean(),
+  specialEffects: z.boolean(),
+  anonymousNames: z.boolean(),
+});
+
 const config = resolveBackendConfig();
 const pool = getSingletonPostgresPool({
   databaseUrl: config.databaseUrl,
@@ -36,6 +47,7 @@ const userRepository = new PostgresUserRepository(pool);
 const leaderboardRepository = new PostgresLeaderboardRepository(pool);
 const gameRecordRepository = new PostgresGameRecordRepository(pool);
 const lobbyRepository = new PostgresLobbyRepository(pool);
+const userPreferencesRepository = new PostgresUserPreferencesRepository(pool);
 
 const authService = new AuthService({
   issuer: config.publicBaseUrl,
@@ -46,6 +58,7 @@ const authService = new AuthService({
 const gameService = new GameService(gameRecordRepository);
 const leaderboardService = new LeaderboardService(leaderboardRepository);
 const lobbyService = new LobbyService(lobbyRepository);
+const userPreferencesService = new UserPreferencesService(userPreferencesRepository);
 const instanceId = createRequestId().replace("req_", "inst_");
 
 function isAuthorizedByApiKey(requestApiKey: string | null): boolean {
@@ -80,6 +93,25 @@ function extractLobbyDeleteGameId(pathname: string): string | null {
     return null;
   }
   return decodeURIComponent(match[1]);
+}
+
+async function readAuthenticatedUser(
+  request: IncomingMessage,
+): Promise<
+  | {
+      persistentID: string;
+      displayName: string;
+      email: string | null;
+      discordUsername: string | null;
+      elo: number;
+    }
+  | null
+> {
+  const bearer = readBearerToken(request);
+  if (!bearer) {
+    return null;
+  }
+  return authService.readUserFromToken(bearer);
 }
 
 const server = createServer(async (request, response) => {
@@ -166,15 +198,14 @@ const server = createServer(async (request, response) => {
     }
 
     if (request.method === "GET" && pathname === "/users/@me") {
-      const bearer = readBearerToken(request);
-      if (!bearer) {
-        writeJson(response, 401, { error: "missing_bearer_token" }, config.corsOrigin);
-        return;
-      }
-
-      const user = await authService.readUserFromToken(bearer);
+      const user = await readAuthenticatedUser(request);
       if (!user) {
-        writeJson(response, 401, { error: "invalid_or_expired_token" }, config.corsOrigin);
+        writeJson(
+          response,
+          401,
+          { error: "invalid_or_expired_token" },
+          config.corsOrigin,
+        );
         return;
       }
 
@@ -203,6 +234,64 @@ const server = createServer(async (request, response) => {
         },
         config.corsOrigin,
       );
+      return;
+    }
+
+    if (request.method === "GET" && pathname === "/users/@me/preferences") {
+      const user = await readAuthenticatedUser(request);
+      if (!user) {
+        writeJson(
+          response,
+          401,
+          { error: "invalid_or_expired_token" },
+          config.corsOrigin,
+        );
+        return;
+      }
+
+      const preferences = await userPreferencesService.getForPersistentID(
+        user.persistentID,
+      );
+      writeJson(response, 200, preferences, config.corsOrigin);
+      return;
+    }
+
+    if (request.method === "PUT" && pathname === "/users/@me/preferences") {
+      const user = await readAuthenticatedUser(request);
+      if (!user) {
+        writeJson(
+          response,
+          401,
+          { error: "invalid_or_expired_token" },
+          config.corsOrigin,
+        );
+        return;
+      }
+
+      const parsed = UpdatePreferencesSchema.safeParse(
+        await readJsonBody(request),
+      );
+      if (!parsed.success) {
+        writeJson(
+          response,
+          400,
+          { error: "invalid_preferences_payload", issues: parsed.error.issues },
+          config.corsOrigin,
+        );
+        return;
+      }
+
+      try {
+        const saved = await userPreferencesService.upsertForPersistentID(
+          user.persistentID,
+          parsed.data,
+        );
+        writeJson(response, 200, saved, config.corsOrigin);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "invalid_input";
+        const status = message === "user_not_found" ? 404 : 400;
+        writeJson(response, status, { error: message }, config.corsOrigin);
+      }
       return;
     }
 

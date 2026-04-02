@@ -5,6 +5,15 @@ export interface UserSummary {
   discordUsername: string | null;
 }
 
+export interface UserPreferenceRow {
+  username: string;
+  clanTag: string;
+  language: string;
+  darkMode: boolean;
+  specialEffects: boolean;
+  anonymousNames: boolean;
+}
+
 export interface RankedPlayerRow {
   playerID: string;
   elo: number;
@@ -53,4 +62,12 @@ export interface LobbyRepository {
   listPublic(limit: number): Promise<PublicLobbyRow[]>;
   upsert(gameID: string, payload: Record<string, unknown>): Promise<void>;
   remove(gameID: string): Promise<void>;
+}
+
+export interface UserPreferencesRepository {
+  getByPersistentID(persistentID: string): Promise<UserPreferenceRow | null>;
+  upsertByPersistentID(
+    persistentID: string,
+    input: UserPreferenceRow,
+  ): Promise<UserPreferenceRow | null>;
 }

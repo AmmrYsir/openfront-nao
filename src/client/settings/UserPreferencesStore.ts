@@ -109,6 +109,20 @@ export class UserPreferencesStore {
     return this.getSnapshot();
   }
 
+  replaceAll(next: UserPreferences): UserPreferences {
+    this.preferences = {
+      username: next.username.trim(),
+      clanTag: sanitizeClanTag(next.clanTag.trim()),
+      language: (next.language || DEFAULT_LANGUAGE).trim().toLowerCase(),
+      darkMode: next.darkMode,
+      specialEffects: next.specialEffects,
+      anonymousNames: next.anonymousNames,
+    };
+    this.persist();
+    this.applyThemeClass();
+    return this.getSnapshot();
+  }
+
   updateIdentity(input: {
     username: string;
     clanTag: string;

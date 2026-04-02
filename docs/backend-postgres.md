@@ -43,6 +43,8 @@ bun run backend:dev
 - `POST /auth/revoke`
 - `POST /auth/magic-link`
 - `GET /users/@me`
+- `GET /users/@me/preferences`
+- `PUT /users/@me/preferences`
 - `GET /leaderboard/ranked?page=<n>`
 - `GET /public/clans/leaderboard`
 - `GET /game/:id`

@@ -94,6 +94,7 @@ export function createGameApp(host: HTMLElement): GameApp {
   const settingsPageController = new SettingsPageController({
     host: uiRoot.getSettingsPanelHost(),
     preferencesStore: userPreferencesStore,
+    apiClient,
     onStatus: (status) => uiRoot.setSettingsStatus(status),
   });
 
@@ -181,7 +182,7 @@ export function createGameApp(host: HTMLElement): GameApp {
     if (lobbyPageController) {
       await lobbyPageController.hydrate();
     }
-    settingsPageController.hydrate();
+    await settingsPageController.hydrate();
 
     uiRoot.setLobbyStatus("Connecting to lobby updates...");
     await lobbySocket.start();
