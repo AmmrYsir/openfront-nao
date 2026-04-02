@@ -1,10 +1,12 @@
 import type { PublicApiClient, UserMeResponse } from "../../client/api/PublicApiClient";
 import type { AuthClient } from "../../client/auth/AuthClient";
+import { LocalGameHistoryStore } from "../../client/history/LocalGameHistoryStore";
 
 interface AccountPageControllerOptions {
   host: HTMLElement;
   authClient: AuthClient;
   apiClient: PublicApiClient;
+  localGameHistoryStore?: LocalGameHistoryStore;
   onStatus?: (status: string) => void;
 }
 
@@ -12,6 +14,7 @@ export class AccountPageController {
   private readonly host: HTMLElement;
   private readonly authClient: AuthClient;
   private readonly apiClient: PublicApiClient;
+  private readonly localGameHistoryStore: LocalGameHistoryStore;
   private readonly onStatus?: (status: string) => void;
 
   private refreshButton: HTMLButtonElement | null = null;
@@ -24,6 +27,8 @@ export class AccountPageController {
     this.host = options.host;
     this.authClient = options.authClient;
     this.apiClient = options.apiClient;
+    this.localGameHistoryStore =
+      options.localGameHistoryStore ?? new LocalGameHistoryStore();
     this.onStatus = options.onStatus;
 
     this.render();
@@ -96,9 +101,13 @@ export class AccountPageController {
     }
 
     if (me === false) {
+      const entries = this.localGameHistoryStore.list();
+      const lastGame = entries[0]?.gameID ?? "none";
       this.detailNode.textContent = [
         "authenticated: false",
         `persistent_id: ${this.authClient.getPersistentId()}`,
+        `local_game_records: ${entries.length}`,
+        `last_local_game: ${lastGame}`,
         "message: no active session",
       ].join("\n");
       this.pushStatus("Account not authenticated yet.");
@@ -107,12 +116,16 @@ export class AccountPageController {
 
     const handle = me.user.discord?.username ?? me.user.email ?? "unknown";
     const elo = me.player.leaderboard?.oneVone?.elo ?? "n/a";
+    const entries = this.localGameHistoryStore.list();
+    const lastGame = entries[0]?.gameID ?? "none";
     this.detailNode.textContent = [
       "authenticated: true",
       `player_id: ${me.player.id}`,
       `display_name: ${me.player.displayName}`,
       `handle: ${handle}`,
       `elo: ${String(elo)}`,
+      `local_game_records: ${entries.length}`,
+      `last_local_game: ${lastGame}`,
     ].join("\n");
     this.pushStatus(`Authenticated as ${handle}.`);
   }

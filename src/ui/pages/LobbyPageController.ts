@@ -3,12 +3,16 @@ import type { LobbyDirectoryClient, PublicLobbyInfo } from "../../client/lobby/L
 interface LobbyPageControllerOptions {
   host: HTMLElement;
   lobbyDirectoryClient: LobbyDirectoryClient;
+  onStartMatchmaking?: () => Promise<void>;
+  onStopMatchmaking?: () => void;
   onStatus?: (status: string) => void;
 }
 
 export class LobbyPageController {
   private readonly host: HTMLElement;
   private readonly lobbyDirectoryClient: LobbyDirectoryClient;
+  private readonly onStartMatchmaking?: () => Promise<void>;
+  private readonly onStopMatchmaking?: () => void;
   private readonly onStatus?: (status: string) => void;
 
   private refreshButton: HTMLButtonElement | null = null;
@@ -18,10 +22,15 @@ export class LobbyPageController {
   private payloadInput: HTMLTextAreaElement | null = null;
   private rowsNode: HTMLElement | null = null;
   private realtimeCountNode: HTMLElement | null = null;
+  private matchmakingStartButton: HTMLButtonElement | null = null;
+  private matchmakingStopButton: HTMLButtonElement | null = null;
+  private assignedGameNode: HTMLElement | null = null;
 
   constructor(options: LobbyPageControllerOptions) {
     this.host = options.host;
     this.lobbyDirectoryClient = options.lobbyDirectoryClient;
+    this.onStartMatchmaking = options.onStartMatchmaking;
+    this.onStopMatchmaking = options.onStopMatchmaking;
     this.onStatus = options.onStatus;
 
     this.render();
@@ -39,10 +48,25 @@ export class LobbyPageController {
     this.realtimeCountNode.textContent = `${count}`;
   }
 
+  setAssignedGame(gameID: string | null): void {
+    if (!this.assignedGameNode) {
+      return;
+    }
+    this.assignedGameNode.textContent = gameID ?? "-";
+  }
+
   dispose(): void {
     this.refreshButton?.removeEventListener("click", this.handleRefresh);
     this.createButton?.removeEventListener("click", this.handleCreate);
     this.deleteButton?.removeEventListener("click", this.handleDelete);
+    this.matchmakingStartButton?.removeEventListener(
+      "click",
+      this.handleMatchmakingStart,
+    );
+    this.matchmakingStopButton?.removeEventListener(
+      "click",
+      this.handleMatchmakingStop,
+    );
   }
 
   private render(): void {
@@ -57,6 +81,18 @@ export class LobbyPageController {
           <button type="button" data-lobby-refresh>Refresh List</button>
           <span class="meta-pill">Realtime visible: <strong data-lobby-realtime>0</strong></span>
         </div>
+
+        <section class="feature-panel feature-panel--nested">
+          <header class="panel-head">
+            <h2>Ranked Matchmaking</h2>
+            <p class="panel-subtitle">Migrated queue workflow from legacy matchmaking transport.</p>
+          </header>
+          <div class="row-inline">
+            <button type="button" data-lobby-matchmaking-start>Start Queue</button>
+            <button type="button" data-lobby-matchmaking-stop>Stop Queue</button>
+          </div>
+          <span class="meta-pill">Assigned game: <strong data-lobby-assigned-game>-</strong></span>
+        </section>
 
         <table class="table-grid">
           <thead>
@@ -109,10 +145,24 @@ export class LobbyPageController {
     this.realtimeCountNode = this.host.querySelector<HTMLElement>(
       "[data-lobby-realtime]",
     );
+    this.matchmakingStartButton = this.host.querySelector<HTMLButtonElement>(
+      "[data-lobby-matchmaking-start]",
+    );
+    this.matchmakingStopButton = this.host.querySelector<HTMLButtonElement>(
+      "[data-lobby-matchmaking-stop]",
+    );
+    this.assignedGameNode = this.host.querySelector<HTMLElement>(
+      "[data-lobby-assigned-game]",
+    );
 
     this.refreshButton?.addEventListener("click", this.handleRefresh);
     this.createButton?.addEventListener("click", this.handleCreate);
     this.deleteButton?.addEventListener("click", this.handleDelete);
+    this.matchmakingStartButton?.addEventListener(
+      "click",
+      this.handleMatchmakingStart,
+    );
+    this.matchmakingStopButton?.addEventListener("click", this.handleMatchmakingStop);
   }
 
   private async refresh(): Promise<void> {
@@ -200,6 +250,25 @@ export class LobbyPageController {
         await this.refresh();
       }
     })();
+  };
+
+  private readonly handleMatchmakingStart = (): void => {
+    void (async () => {
+      if (!this.onStartMatchmaking) {
+        this.pushStatus("Matchmaking is not configured.");
+        return;
+      }
+      await this.onStartMatchmaking();
+    })();
+  };
+
+  private readonly handleMatchmakingStop = (): void => {
+    if (!this.onStopMatchmaking) {
+      this.pushStatus("Matchmaking is not configured.");
+      return;
+    }
+    this.onStopMatchmaking();
+    this.setAssignedGame(null);
   };
 
   private pushStatus(status: string): void {

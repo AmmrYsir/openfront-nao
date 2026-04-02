@@ -122,6 +122,10 @@ This document tracks the migration from `old_project` into the new Bun + Vite + 
   backend now supports `/users/@me/preferences` read/write with typed validation and persisted preference rows.
 - Connected settings UI to backend preference sync:
   settings now load from and save to account profile when authenticated, while preserving local-first fallback behavior.
+- Migrated ranked matchmaking orchestration into modular client domain service:
+  `src/client/matchmaking/RankedMatchmakingSession.ts` now composes `MatchmakingClient` with queue/status/ready polling logic, and the lobby page controller integrates queue controls without embedding transport internals.
+- Migrated legacy client safety/history utilities:
+  `MultiTabSessionGuard` now protects against multi-tab conflicts with explicit lifecycle wiring, and `LocalGameHistoryStore` centralizes local replay history persistence.
 
 ### Pending
 

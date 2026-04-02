@@ -156,6 +156,14 @@ body {
   gap: 0.75rem;
 }
 
+.feature-panel--nested {
+  background: #f8fbfa;
+}
+
+:root.dark .feature-panel--nested {
+  background: #10181d;
+}
+
 .panel-head h2 {
   margin: 0;
   font-size: 1rem;

@@ -17,7 +17,9 @@ import { PublicApiClient } from "../../client/api/PublicApiClient";
 import { PublicLobbySocket } from "../../client/lobby/PublicLobbySocket";
 import { LobbyDirectoryClient } from "../../client/lobby/LobbyDirectoryClient";
 import { resolveBrowserRuntimeServerConfig } from "../../client/config/RuntimeServerConfig";
+import { RankedMatchmakingSession } from "../../client/matchmaking/RankedMatchmakingSession";
 import { UserPreferencesStore } from "../../client/settings/UserPreferencesStore";
+import { MultiTabSessionGuard } from "../../client/session/MultiTabSessionGuard";
 import {
   AccountPageController,
   LeaderboardPageController,
@@ -59,8 +61,22 @@ export function createGameApp(host: HTMLElement): GameApp {
     apiKey: params.get("apiKey"),
   });
   const userPreferencesStore = new UserPreferencesStore();
+  const multiTabGuard =
+    typeof window !== "undefined" ? new MultiTabSessionGuard() : null;
   const runtimeServerConfig = resolveBrowserRuntimeServerConfig();
   let lobbyPageController: LobbyPageController | null = null;
+  const rankedMatchmakingSession = new RankedMatchmakingSession({
+    config: runtimeServerConfig,
+    authClient,
+    onStatus: (status) => uiRoot.setLobbyStatus(status),
+    onAssigned: (gameID) => {
+      lobbyPageController?.setAssignedGame(gameID);
+    },
+    onReady: (gameID) => {
+      lobbyPageController?.setAssignedGame(gameID);
+      uiRoot.setLobbyStatus(`Matchmaking game ready: ${gameID}`);
+    },
+  });
   const lobbySocket = new PublicLobbySocket(
     (publicGames) => {
       lobbyPageController?.setRealtimeCount(publicGames.lobbies.length);
@@ -84,6 +100,12 @@ export function createGameApp(host: HTMLElement): GameApp {
   lobbyPageController = new LobbyPageController({
     host: uiRoot.getLobbyPanelHost(),
     lobbyDirectoryClient,
+    onStartMatchmaking: async () => {
+      await rankedMatchmakingSession.start();
+    },
+    onStopMatchmaking: () => {
+      rankedMatchmakingSession.stop();
+    },
     onStatus: (status) => uiRoot.setLobbyStatus(status),
   });
   const leaderboardPageController = new LeaderboardPageController({
@@ -190,6 +212,11 @@ export function createGameApp(host: HTMLElement): GameApp {
 
   return {
     start: () => {
+      multiTabGuard?.startMonitoring((durationMs) => {
+        uiRoot.setStatus(
+          `Multiple tabs detected. Input cooldown for ${Math.round(durationMs / 1000)}s.`,
+        );
+      });
       void ensureWorkerInitialized().then(() => workerClient.getSnapshot());
       void hydrateClientServices().catch(() => {
         uiRoot.setAccountStatus("Account service error.");
@@ -203,6 +230,8 @@ export function createGameApp(host: HTMLElement): GameApp {
         return;
       }
       disposed = true;
+      multiTabGuard?.stopMonitoring();
+      rankedMatchmakingSession.stop();
       lobbySocket.stop();
       accountPageController.dispose();
       lobbyPageController?.dispose();
