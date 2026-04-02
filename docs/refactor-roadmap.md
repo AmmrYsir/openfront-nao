@@ -131,6 +131,10 @@ This document tracks the migration from `old_project` into the new Bun + Vite + 
 
 ### Pending
 
+- Singleplayer gameplay flow parity is not yet migrated:
+  - `GameModeSelector` + `SinglePlayerModal` surface
+  - local solo bootstrap path (`LocalServer`/singleplayer archive route integration)
+  - in-game renderer/layer parity for full old frontend playability
 - Legacy commerce/cosmetic purchase surface (`Store`, payment checkout UI) is intentionally deferred from this core migration pass.
 - Ads/InGamePromo behavior remains untouched per migration constraints.
 

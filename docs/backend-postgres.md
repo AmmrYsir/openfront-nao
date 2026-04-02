@@ -17,6 +17,8 @@ docker compose up -d postgres
 ```
 
 2. Configure env (copy `backend.env.example` into your environment).
+   - Preferred: `cp .env.example .env` (or run `npm run env:init`).
+   - Legacy backend-only template: `backend.env.example`.
    - Set `API_PUBLIC_BASE` to the browser-visible backend URL used for JWT issuer.
 
 3. Run migrations:

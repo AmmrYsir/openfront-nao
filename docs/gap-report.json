@@ -1,0 +1,51 @@
+{
+  "generatedAt": "2026-04-02T10:56:55.779Z",
+  "counts": {
+    "oldSrcTs": 328,
+    "newSrcTs": 97,
+    "oldTests": 88,
+    "newTests": 23
+  },
+  "parityReport": [
+    {
+      "capability": "Singleplayer Modal",
+      "oldPath": "old_project/src/client/SinglePlayerModal.ts",
+      "newPath": "src/ui/pages/SinglePlayerModal.ts",
+      "oldExists": true,
+      "newExists": false,
+      "status": "missing_in_new"
+    },
+    {
+      "capability": "Game Mode Selector",
+      "oldPath": "old_project/src/client/GameModeSelector.ts",
+      "newPath": "src/ui/pages/GameModeSelector.ts",
+      "oldExists": true,
+      "newExists": false,
+      "status": "missing_in_new"
+    },
+    {
+      "capability": "Local Solo Server Flow",
+      "oldPath": "old_project/src/client/LocalServer.ts",
+      "newPath": "src/client/solo/LocalServer.ts",
+      "oldExists": true,
+      "newExists": false,
+      "status": "missing_in_new"
+    },
+    {
+      "capability": "Canvas Renderer",
+      "oldPath": "old_project/src/client/graphics/GameRenderer.ts",
+      "newPath": "src/ui/runtime/GameRenderer.ts",
+      "oldExists": true,
+      "newExists": false,
+      "status": "missing_in_new"
+    },
+    {
+      "capability": "Client Game Runner",
+      "oldPath": "old_project/src/client/ClientGameRunner.ts",
+      "newPath": "src/ui/runtime/ClientGameRunner.ts",
+      "oldExists": true,
+      "newExists": false,
+      "status": "missing_in_new"
+    }
+  ]
+}
