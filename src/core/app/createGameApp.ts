@@ -152,5 +152,7 @@ function createTurnTransportFromSearchParams(
   return new WebSocketTurnTransport({
     url: config.url,
     gameID: config.gameID,
+    mode: config.mode,
+    legacySession: config.legacySession,
   });
 }
