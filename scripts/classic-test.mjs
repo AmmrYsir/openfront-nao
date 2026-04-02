@@ -3,15 +3,15 @@ import { existsSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 
 const root = process.cwd();
-const classicSourceDir = resolve(root, "classic_source");
+const classicRuntimeDir = resolve(root, "packages", "classic-runtime");
 const classicDir = resolve(root, "public", "classic");
 const classicIndex = resolve(classicDir, "index.html");
 const classicAssetsDir = resolve(classicDir, "assets");
 
-if (existsSync(classicSourceDir)) {
-  ensureClassicSourceDependencies();
-  console.log("classic_source detected. Running legacy test suite...");
-  execSync("bun run --cwd classic_source test", {
+if (existsSync(classicRuntimeDir)) {
+  ensureClassicRuntimeDependencies();
+  console.log("Classic runtime package detected. Running legacy test suite...");
+  execSync("bun run --cwd packages/classic-runtime test", {
     cwd: root,
     stdio: "inherit",
   });
@@ -20,7 +20,7 @@ if (existsSync(classicSourceDir)) {
 
 if (!existsSync(classicIndex) || !existsSync(classicAssetsDir)) {
   console.error(
-    "Classic parity validation failed: missing public/classic bundle and classic_source is unavailable.",
+    "Classic parity validation failed: missing public/classic bundle and packages/classic-runtime is unavailable.",
   );
   process.exit(1);
 }
@@ -28,27 +28,27 @@ if (!existsSync(classicIndex) || !existsSync(classicAssetsDir)) {
 const assets = readdirSync(classicAssetsDir);
 if (assets.length === 0) {
   console.error(
-    "Classic parity validation failed: public/classic/assets is empty and classic_source is unavailable.",
+    "Classic parity validation failed: public/classic/assets is empty and packages/classic-runtime is unavailable.",
   );
   process.exit(1);
 }
 
 console.log(
-  "classic_source not found. Classic parity bundle is present and can be served from public/classic.",
+  "packages/classic-runtime not found. Classic parity bundle is present and can be served from public/classic.",
 );
 
-function ensureClassicSourceDependencies() {
-  const nodeModulesDir = resolve(classicSourceDir, "node_modules");
+function ensureClassicRuntimeDependencies() {
+  const nodeModulesDir = resolve(classicRuntimeDir, "node_modules");
   const vitestBin = resolve(nodeModulesDir, ".bin", "vitest");
   const vitestBinCmd = resolve(nodeModulesDir, ".bin", "vitest.cmd");
   if (existsSync(vitestBin) || existsSync(vitestBinCmd)) {
     return;
   }
 
-  console.log("Installing classic_source dependencies...");
+  console.log("Installing classic runtime dependencies...");
   const commands = [
-    "bun install --cwd classic_source",
-    "npm --prefix classic_source install",
+    "bun install --cwd packages/classic-runtime",
+    "npm --prefix packages/classic-runtime install",
   ];
 
   for (const command of commands) {
@@ -63,5 +63,5 @@ function ensureClassicSourceDependencies() {
     }
   }
 
-  throw new Error("Failed to install classic_source dependencies.");
+  throw new Error("Failed to install classic runtime dependencies.");
 }

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-02T13:16:55.937Z",
+  "generatedAt": "2026-04-02T13:36:36.682Z",
   "counts": {
     "oldSrcTs": 328,
     "newSrcTs": 102,
@@ -9,7 +9,7 @@
   "parityReport": [
     {
       "capability": "Singleplayer Modal",
-      "oldPath": "classic_source/src/client/SinglePlayerModal.ts",
+      "oldPath": "packages/classic-runtime/src/client/SinglePlayerModal.ts",
       "newPath": "src/ui/pages/SinglePlayerModal.ts",
       "bridgePaths": [
         "src/ui/pages/ClassicPageController.ts",
@@ -22,7 +22,7 @@
     },
     {
       "capability": "Game Mode Selector",
-      "oldPath": "classic_source/src/client/GameModeSelector.ts",
+      "oldPath": "packages/classic-runtime/src/client/GameModeSelector.ts",
       "newPath": "src/ui/pages/GameModeSelector.ts",
       "bridgePaths": [
         "src/ui/pages/ClassicPageController.ts",
@@ -35,7 +35,7 @@
     },
     {
       "capability": "Local Solo Server Flow",
-      "oldPath": "classic_source/src/client/LocalServer.ts",
+      "oldPath": "packages/classic-runtime/src/client/LocalServer.ts",
       "newPath": "src/client/solo/LocalServer.ts",
       "bridgePaths": [
         "src/ui/pages/ClassicPageController.ts",
@@ -48,7 +48,7 @@
     },
     {
       "capability": "Canvas Renderer",
-      "oldPath": "classic_source/src/client/graphics/GameRenderer.ts",
+      "oldPath": "packages/classic-runtime/src/client/graphics/GameRenderer.ts",
       "newPath": "src/ui/runtime/GameRenderer.ts",
       "bridgePaths": [
         "src/ui/pages/ClassicPageController.ts",
@@ -61,7 +61,7 @@
     },
     {
       "capability": "Client Game Runner",
-      "oldPath": "classic_source/src/client/ClientGameRunner.ts",
+      "oldPath": "packages/classic-runtime/src/client/ClientGameRunner.ts",
       "newPath": "src/ui/runtime/ClientGameRunner.ts",
       "bridgePaths": [
         "src/ui/pages/ClassicPageController.ts",
@@ -74,7 +74,7 @@
     },
     {
       "capability": "Classic UI Bridge",
-      "oldPath": "classic_source/static/index.html",
+      "oldPath": "packages/classic-runtime/static/index.html",
       "newPath": "src/ui/pages/ClassicPageController.ts",
       "bridgePaths": [
         "public/classic/index.html"

@@ -1,6 +1,6 @@
 # Openfront Refactor Roadmap
 
-This document tracks the migration from legacy classic source (`classic_source`) into the new Bun + Vite + TypeScript runtime.
+This document tracks the migration from legacy classic runtime package (`packages/classic-runtime`) into the new Bun + Vite + TypeScript runtime.
 
 ## Guiding Rules
 
