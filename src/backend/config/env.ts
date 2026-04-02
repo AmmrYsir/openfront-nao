@@ -2,6 +2,7 @@ export interface BackendConfig {
   host: string;
   port: number;
   corsOrigin: string;
+  publicBaseUrl: string;
   databaseUrl: string;
   databaseSsl: boolean;
   serviceApiKey: string;
@@ -67,6 +68,9 @@ export function resolveBackendConfig(): BackendConfig {
     host: readEnvValue("API_HOST") ?? "0.0.0.0",
     port: readNumberEnv("API_PORT", 8787),
     corsOrigin: readEnvValue("API_CORS_ORIGIN") ?? "*",
+    publicBaseUrl:
+      readEnvValue("API_PUBLIC_BASE") ??
+      `http://localhost:${readNumberEnv("API_PORT", 8787)}`,
     databaseUrl:
       readEnvValue("DATABASE_URL") ??
       "postgres://postgres:postgres@localhost:5432/openfront_nao",

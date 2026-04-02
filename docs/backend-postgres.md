@@ -17,6 +17,7 @@ docker compose up -d postgres
 ```
 
 2. Configure env (copy `backend.env.example` into your environment).
+   - Set `API_PUBLIC_BASE` to the browser-visible backend URL used for JWT issuer.
 
 3. Run migrations:
 
@@ -34,3 +35,21 @@ bun run backend:dev
 
 - `GET /api/health`
 - `GET /api/health/db`
+
+## Implemented backend API surface
+
+- `POST /auth/refresh`
+- `POST /auth/logout`
+- `POST /auth/revoke`
+- `POST /auth/magic-link`
+- `GET /users/@me`
+- `GET /leaderboard/ranked?page=<n>`
+- `GET /public/clans/leaderboard`
+- `GET /game/:id`
+- `POST /game/:id` (requires `x-api-key`)
+- `GET /api/game/:id/exists`
+- `GET /w<worker>/api/game/:id/exists`
+- `GET /api/lobbies`
+- `POST /api/lobbies` (requires `x-api-key`)
+- `DELETE /api/lobbies/:id` (requires `x-api-key`)
+- `GET /api/instance`

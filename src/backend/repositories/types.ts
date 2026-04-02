@@ -12,6 +12,12 @@ export interface RankedPlayerRow {
   losses: number;
 }
 
+export interface PublicLobbyRow {
+  gameID: string;
+  payload: Record<string, unknown>;
+  updatedAt: number;
+}
+
 export interface GameRecordEnvelope {
   gameID: string;
   payload: Record<string, unknown>;
@@ -34,10 +40,17 @@ export interface LeaderboardRepository {
     pageCount: number;
     players: RankedPlayerRow[];
   }>;
+  getByPersistentID(persistentID: string): Promise<RankedPlayerRow | null>;
 }
 
 export interface GameRecordRepository {
   getByGameID(gameID: string): Promise<GameRecordEnvelope | null>;
   upsert(record: GameRecordEnvelope): Promise<void>;
   exists(gameID: string): Promise<boolean>;
+}
+
+export interface LobbyRepository {
+  listPublic(limit: number): Promise<PublicLobbyRow[]>;
+  upsert(gameID: string, payload: Record<string, unknown>): Promise<void>;
+  remove(gameID: string): Promise<void>;
 }

@@ -112,6 +112,8 @@ This document tracks the migration from `old_project` into the new Bun + Vite + 
   `createGameApp` now hydrates account/leaderboard/lobby service status through typed `AuthClient`, `PublicApiClient`, and `PublicLobbySocket` flows in the new UI shell.
 - Added first-party backend + PostgreSQL integration foundation:
   `src/backend` now includes env config, Postgres pool, SQL migration tooling, health server bootstrap, repository contracts, and local dockerized Postgres setup.
+- Added typed backend service layer + API surface:
+  Postgres repositories (`users`, `game_records`, `ranked_leaderboard`, `public_lobbies`) now back auth refresh/user profile, leaderboard, game archive/read, game-exists, lobby endpoints, and instance metadata routes.
 
 ### Pending
 

@@ -200,6 +200,13 @@ export class AuthClient {
         const response = await fetch(resolveApiBase() + "/auth/refresh", {
           method: "POST",
           credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            "x-persistent-id": ensurePersistentId(),
+          },
+          body: JSON.stringify({
+            persistentID: ensurePersistentId(),
+          }),
         });
         if (!response.ok) {
           this.jwt = null;
