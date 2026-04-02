@@ -43,6 +43,51 @@ interface ActiveAlliance {
   extensionAgreements: Set<string>;
 }
 
+export interface ProjectedPlayerSnapshot {
+  id: string;
+  spawnedTileCount: number;
+  attacksLaunched: number;
+  attacksReceived: number;
+  navalAttacksLaunched: number;
+  committedTroops: number;
+  goldDonated: number;
+  goldReceived: number;
+  troopsDonated: number;
+  troopsReceived: number;
+  builtUnitTotal: number;
+  upgradedStructureCount: number;
+  deletedUnitCount: number;
+  movedWarshipCount: number;
+  allianceExtensionsSent: number;
+  activeTargetCount: number;
+  activeEmbargoCount: number;
+  activeAllianceCount: number;
+  outgoingAllianceRequestCount: number;
+  incomingAllianceRequestCount: number;
+  isDisconnected: boolean;
+  isKicked: boolean;
+}
+
+export interface ProjectedAllianceSnapshot {
+  id: string;
+  playerA: string;
+  playerB: string;
+  createdAt: number;
+  expiresAt: number;
+  ticksRemaining: number;
+  isInExtensionWindow: boolean;
+  extensionAgreementCount: number;
+}
+
+export interface ProjectedAllianceRequestSnapshot {
+  id: string;
+  requestorId: string;
+  recipientId: string;
+  createdAt: number;
+  expiresAt: number;
+  ticksRemaining: number;
+}
+
 interface WorldSummary {
   playerCount: number;
   allianceCount: number;
@@ -217,6 +262,37 @@ export class ProjectedWorldState {
     for (const playerId of this.playerTargets.keys()) {
       this.pruneExpiredTargetsForPlayer(playerId);
     }
+  }
+
+  private computeAllianceCountsByPlayer(): Map<string, number> {
+    const counts = new Map<string, number>();
+    for (const alliance of this.activeAlliances.values()) {
+      counts.set(alliance.playerA, (counts.get(alliance.playerA) ?? 0) + 1);
+      counts.set(alliance.playerB, (counts.get(alliance.playerB) ?? 0) + 1);
+    }
+    return counts;
+  }
+
+  private computeOutgoingRequestCountsByPlayer(): Map<string, number> {
+    const counts = new Map<string, number>();
+    for (const request of this.pendingAllianceRequests.values()) {
+      counts.set(
+        request.requestorId,
+        (counts.get(request.requestorId) ?? 0) + 1,
+      );
+    }
+    return counts;
+  }
+
+  private computeIncomingRequestCountsByPlayer(): Map<string, number> {
+    const counts = new Map<string, number>();
+    for (const request of this.pendingAllianceRequests.values()) {
+      counts.set(
+        request.recipientId,
+        (counts.get(request.recipientId) ?? 0) + 1,
+      );
+    }
+    return counts;
   }
 
   recordSpawn(playerId: string, tile: number): void {
@@ -517,5 +593,99 @@ export class ProjectedWorldState {
       blockedTargetCount: this.blockedTargetCount,
       allianceInExtensionWindowCount,
     };
+  }
+
+  getPlayerSnapshots(): ProjectedPlayerSnapshot[] {
+    this.pruneExpiredState();
+
+    const allianceCountsByPlayer = this.computeAllianceCountsByPlayer();
+    const outgoingRequestCountsByPlayer =
+      this.computeOutgoingRequestCountsByPlayer();
+    const incomingRequestCountsByPlayer =
+      this.computeIncomingRequestCountsByPlayer();
+
+    const snapshots: ProjectedPlayerSnapshot[] = [];
+
+    for (const [playerId, player] of this.players.entries()) {
+      const activeTargets = this.playerTargets.get(playerId)?.length ?? 0;
+      const builtUnitTotal = Object.values(player.builtUnits).reduce(
+        (sum, count) => sum + count,
+        0,
+      );
+
+      snapshots.push({
+        id: playerId,
+        spawnedTileCount: player.spawnedTiles.size,
+        attacksLaunched: player.attacksLaunched,
+        attacksReceived: player.attacksReceived,
+        navalAttacksLaunched: player.navalAttacksLaunched,
+        committedTroops: player.committedTroops,
+        goldDonated: player.goldDonated,
+        goldReceived: player.goldReceived,
+        troopsDonated: player.troopsDonated,
+        troopsReceived: player.troopsReceived,
+        builtUnitTotal,
+        upgradedStructureCount: player.upgradedStructureCount,
+        deletedUnitCount: player.deletedUnitCount,
+        movedWarshipCount: player.movedWarshipCount,
+        allianceExtensionsSent: player.allianceExtensionsSent,
+        activeTargetCount: activeTargets,
+        activeEmbargoCount: player.embargoTargets.size,
+        activeAllianceCount: allianceCountsByPlayer.get(playerId) ?? 0,
+        outgoingAllianceRequestCount:
+          outgoingRequestCountsByPlayer.get(playerId) ?? 0,
+        incomingAllianceRequestCount:
+          incomingRequestCountsByPlayer.get(playerId) ?? 0,
+        isDisconnected: player.isDisconnected,
+        isKicked: player.isKicked,
+      });
+    }
+
+    return snapshots.sort((a, b) => a.id.localeCompare(b.id));
+  }
+
+  getAllianceSnapshots(): ProjectedAllianceSnapshot[] {
+    this.pruneExpiredState();
+
+    const snapshots: ProjectedAllianceSnapshot[] = [];
+
+    for (const [id, alliance] of this.activeAlliances.entries()) {
+      const ticksRemaining = Math.max(0, alliance.expiresAt - this.currentTick);
+      const isInExtensionWindow =
+        this.currentTick + LEGACY_SIMULATION_RULES.allianceExtensionPromptOffsetTicks >=
+        alliance.expiresAt;
+
+      snapshots.push({
+        id,
+        playerA: alliance.playerA,
+        playerB: alliance.playerB,
+        createdAt: alliance.createdAt,
+        expiresAt: alliance.expiresAt,
+        ticksRemaining,
+        isInExtensionWindow,
+        extensionAgreementCount: alliance.extensionAgreements.size,
+      });
+    }
+
+    return snapshots.sort((a, b) => a.id.localeCompare(b.id));
+  }
+
+  getPendingAllianceRequestSnapshots(): ProjectedAllianceRequestSnapshot[] {
+    this.pruneExpiredState();
+
+    const snapshots: ProjectedAllianceRequestSnapshot[] = [];
+
+    for (const [id, request] of this.pendingAllianceRequests.entries()) {
+      snapshots.push({
+        id,
+        requestorId: request.requestorId,
+        recipientId: request.recipientId,
+        createdAt: request.createdAt,
+        expiresAt: request.expiresAt,
+        ticksRemaining: Math.max(0, request.expiresAt - this.currentTick),
+      });
+    }
+
+    return snapshots.sort((a, b) => a.id.localeCompare(b.id));
   }
 }

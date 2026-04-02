@@ -1,6 +1,62 @@
 import type { GameSessionSnapshot } from "../game/state/GameSessionStore";
 import { renderNumber } from "../utils/formatNumbers";
 
+function formatProjectedPlayers(snapshot: GameSessionSnapshot): string {
+  if (snapshot.projectedPlayers.length === 0) {
+    return "none";
+  }
+
+  return snapshot.projectedPlayers
+    .map((player) => {
+      return [
+        player.id,
+        `spawn:${player.spawnedTileCount}`,
+        `atk:${player.attacksLaunched}/${player.attacksReceived}`,
+        `ally:${player.activeAllianceCount}`,
+        `req:${player.outgoingAllianceRequestCount}->${player.incomingAllianceRequestCount}`,
+        `target:${player.activeTargetCount}`,
+        `emb:${player.activeEmbargoCount}`,
+        `kick:${player.isKicked ? "y" : "n"}`,
+        `disc:${player.isDisconnected ? "y" : "n"}`,
+      ].join(" | ");
+    })
+    .join("\n");
+}
+
+function formatProjectedAlliances(snapshot: GameSessionSnapshot): string {
+  if (snapshot.projectedAlliances.length === 0) {
+    return "none";
+  }
+
+  return snapshot.projectedAlliances
+    .map((alliance) => {
+      return [
+        alliance.id,
+        `${alliance.playerA}<->${alliance.playerB}`,
+        `ttl:${alliance.ticksRemaining}`,
+        `renewWindow:${alliance.isInExtensionWindow ? "y" : "n"}`,
+        `agreements:${alliance.extensionAgreementCount}`,
+      ].join(" | ");
+    })
+    .join("\n");
+}
+
+function formatPendingAllianceRequests(snapshot: GameSessionSnapshot): string {
+  if (snapshot.projectedPendingAllianceRequests.length === 0) {
+    return "none";
+  }
+
+  return snapshot.projectedPendingAllianceRequests
+    .map((request) => {
+      return [
+        request.id,
+        `${request.requestorId}->${request.recipientId}`,
+        `ttl:${request.ticksRemaining}`,
+      ].join(" | ");
+    })
+    .join("\n");
+}
+
 export class Hud {
   private readonly turnValue: HTMLElement;
   private readonly processedValue: HTMLElement;
@@ -45,6 +101,9 @@ export class Hud {
   private readonly blockedAllianceRequestCountValue: HTMLElement;
   private readonly blockedTargetCountValue: HTMLElement;
   private readonly allianceExtensionWindowCountValue: HTMLElement;
+  private readonly projectedPlayersView: HTMLElement;
+  private readonly projectedAlliancesView: HTMLElement;
+  private readonly projectedPendingRequestsView: HTMLElement;
   private readonly queueTurnButton: HTMLButtonElement;
   private readonly queueTurnHandler: () => void;
 
@@ -107,6 +166,12 @@ export class Hud {
             <div><dt>Blocked Target Intents</dt><dd id="hud-projected-blocked-targets">0</dd></div>
             <div><dt>Alliances Near Expiry</dt><dd id="hud-projected-alliance-extension-window">0</dd></div>
           </dl>
+          <h2>Projected Players</h2>
+          <pre id="hud-projected-players-view" class="hud-projection"></pre>
+          <h2>Projected Alliances</h2>
+          <pre id="hud-projected-alliances-view" class="hud-projection"></pre>
+          <h2>Pending Alliance Requests</h2>
+          <pre id="hud-projected-requests-view" class="hud-projection"></pre>
         </section>
       </main>
     `;
@@ -204,6 +269,15 @@ export class Hud {
     const allianceExtensionWindowCountValue = host.querySelector<HTMLElement>(
       "#hud-projected-alliance-extension-window",
     );
+    const projectedPlayersView = host.querySelector<HTMLElement>(
+      "#hud-projected-players-view",
+    );
+    const projectedAlliancesView = host.querySelector<HTMLElement>(
+      "#hud-projected-alliances-view",
+    );
+    const projectedPendingRequestsView = host.querySelector<HTMLElement>(
+      "#hud-projected-requests-view",
+    );
     const queueTurnButton =
       host.querySelector<HTMLButtonElement>("#queue-turn-btn");
 
@@ -251,6 +325,9 @@ export class Hud {
       !blockedAllianceRequestCountValue ||
       !blockedTargetCountValue ||
       !allianceExtensionWindowCountValue ||
+      !projectedPlayersView ||
+      !projectedAlliancesView ||
+      !projectedPendingRequestsView ||
       !queueTurnButton
     ) {
       throw new Error("Failed to initialize HUD.");
@@ -299,6 +376,9 @@ export class Hud {
     this.blockedAllianceRequestCountValue = blockedAllianceRequestCountValue;
     this.blockedTargetCountValue = blockedTargetCountValue;
     this.allianceExtensionWindowCountValue = allianceExtensionWindowCountValue;
+    this.projectedPlayersView = projectedPlayersView;
+    this.projectedAlliancesView = projectedAlliancesView;
+    this.projectedPendingRequestsView = projectedPendingRequestsView;
     this.queueTurnButton = queueTurnButton;
     this.queueTurnHandler = onQueueTurnRequested;
     this.queueTurnButton.addEventListener("click", this.queueTurnHandler);
@@ -408,6 +488,10 @@ export class Hud {
     this.allianceExtensionWindowCountValue.textContent = renderNumber(
       snapshot.allianceInExtensionWindowCount,
     );
+    this.projectedPlayersView.textContent = formatProjectedPlayers(snapshot);
+    this.projectedAlliancesView.textContent = formatProjectedAlliances(snapshot);
+    this.projectedPendingRequestsView.textContent =
+      formatPendingAllianceRequests(snapshot);
   }
 
   dispose(): void {

@@ -103,3 +103,23 @@ h1 {
   margin: 0.35rem 0 0;
   font-weight: 700;
 }
+
+h2 {
+  margin: 1rem 0 0.5rem;
+  font-size: 0.95rem;
+  color: var(--ink-muted);
+  letter-spacing: 0.01em;
+}
+
+.hud-projection {
+  margin: 0;
+  padding: 0.75rem;
+  max-height: 9.5rem;
+  overflow: auto;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #f7faf9;
+  color: #223030;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}

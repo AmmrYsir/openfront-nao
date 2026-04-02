@@ -3,7 +3,12 @@ import {
   type ActionCounters,
   createActionCounters,
 } from "./ActionCounters";
-import { ProjectedWorldState } from "./ProjectedWorldState";
+import {
+  ProjectedWorldState,
+  type ProjectedAllianceRequestSnapshot,
+  type ProjectedAllianceSnapshot,
+  type ProjectedPlayerSnapshot,
+} from "./ProjectedWorldState";
 
 export interface GameSessionSnapshot {
   turnNumber: number;
@@ -36,6 +41,9 @@ export interface GameSessionSnapshot {
   blockedAllianceRequestCount: number;
   blockedTargetCount: number;
   allianceInExtensionWindowCount: number;
+  projectedPlayers: ProjectedPlayerSnapshot[];
+  projectedAlliances: ProjectedAllianceSnapshot[];
+  projectedPendingAllianceRequests: ProjectedAllianceRequestSnapshot[];
   mapId: string | null;
   mapSize: string | null;
   mapLoaded: boolean;
@@ -276,6 +284,10 @@ export class GameSessionStore {
 
   snapshot(): GameSessionSnapshot {
     const projectedSummary = this.projectedWorld.getSummary();
+    const projectedPlayers = this.projectedWorld.getPlayerSnapshots();
+    const projectedAlliances = this.projectedWorld.getAllianceSnapshots();
+    const projectedPendingAllianceRequests =
+      this.projectedWorld.getPendingAllianceRequestSnapshots();
 
     return {
       turnNumber: this.turnNumber,
@@ -311,6 +323,9 @@ export class GameSessionStore {
       blockedTargetCount: projectedSummary.blockedTargetCount,
       allianceInExtensionWindowCount:
         projectedSummary.allianceInExtensionWindowCount,
+      projectedPlayers,
+      projectedAlliances,
+      projectedPendingAllianceRequests,
       mapId: this.mapId,
       mapSize: this.mapSize,
       mapLoaded: this.mapLoaded,

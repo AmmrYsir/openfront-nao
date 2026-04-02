@@ -66,6 +66,8 @@ This document tracks the migration from `old_project` into the new Bun + Vite + 
   spawn, attack/boat queues, alliance request/formation/break/extension, embargo edges, donations, unit build counts, and moderation flags.
 - Added legacy-timing diplomacy lifecycle in projected simulation:
   target cooldown/duration, alliance request cooldown/expiry, alliance expiry/renewal windows, and deterministic blocked/expired counters surfaced in worker snapshots.
+- Added typed projected domain snapshots in worker state:
+  per-player gameplay/diplomacy fields plus active alliance/request records, enabling feature work against structured state instead of aggregate counters only.
 
 ### Pending
 
