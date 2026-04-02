@@ -1,11 +1,11 @@
 # Legacy Asset Migration
 
-Legacy game assets were copied from `old_project` into this project so new runtime code can consume them directly.
+Legacy game assets were copied from `classic_source` into this project so new runtime code can consume them directly.
 
 ## Copied Paths
 
-- `old_project/resources/*` -> `public/legacy/resources/*`
-- `old_project/proprietary/*` -> `public/legacy/proprietary/*`
+- `classic_source/resources/*` -> `public/legacy/resources/*`
+- `classic_source/proprietary/*` -> `public/legacy/proprietary/*`
 
 ## Runtime Access
 

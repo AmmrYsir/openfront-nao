@@ -1,6 +1,6 @@
 # OpenFront Full Migration Phases
 
-This plan migrates the remaining `old_project` gameplay/frontend stack into the new Bun + Vite codebase without leaving feature gaps.
+This plan migrates the remaining legacy gameplay/frontend stack (now tracked in `classic_source`) into the new Bun + Vite codebase without leaving feature gaps.
 
 ## Principles
 
@@ -27,7 +27,7 @@ This plan migrates the remaining `old_project` gameplay/frontend stack into the 
 
 ### Scope
 
-- Port singleplayer game-mode entry flow from `old_project`.
+- Port singleplayer game-mode entry flow from `classic_source`.
 - Implement local game bootstrap path in new runtime.
 - Reintroduce essential solo lifecycle behaviors (start, pause, end, archive).
 
@@ -48,9 +48,9 @@ This plan migrates the remaining `old_project` gameplay/frontend stack into the 
 ### Phase 2A Bridge Milestone (Completed)
 
 - Added `Classic` page in the new shell with embedded legacy gameplay UI iframe.
-- Added compatibility bundling pipeline (`npm run classic:build`) to generate `public/classic/*` from `old_project/static/*`.
-- Added cross-repo validation command (`npm run test:all`) so new-runtime and legacy-runtime tests run together when legacy source is available.
-- Added fallback behavior so migrated repo remains runnable even when `old_project/` is not present but `public/classic` is committed.
+- Added compatibility bundling pipeline (`bun run classic:build`) to generate `public/classic/*` from `classic_source/static/*`.
+- Added cross-repo validation command (`bun run test:all`) so new-runtime and legacy-runtime tests run together when legacy source is available.
+- Added fallback behavior so migrated repo remains runnable even when `classic_source/` is not present but `public/classic` is committed.
 
 ### Exit Criteria
 

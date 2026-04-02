@@ -4,6 +4,7 @@ This repo runs the migrated OpenFront stack with:
 - Bun-first tooling
 - New backend (Node/Bun runtime) with PostgreSQL
 - Classic game UI as the active frontend experience
+- Tracked classic source in `classic_source/` (independent from `old_project/`)
 
 ## Prerequisites
 
@@ -101,6 +102,10 @@ bun run build
 bun run build:all
 ```
 
+`bun run build:all` regenerates classic artifacts from `classic_source/` into:
+- `public/classic/*`
+- `public/_assets/*`
+
 ## Useful scripts
 
 - `bun run dev` - Vite dev server
@@ -110,6 +115,11 @@ bun run build:all
 - `bun run test:all` - new + classic suite
 - `bun run build` - new frontend build
 - `bun run build:all` - new + classic compatibility bundle
+
+## Classic source ownership
+
+- Canonical legacy source path is `classic_source/`.
+- `old_project/` is no longer required for classic build/test flow.
 
 ## Classic env override (optional)
 

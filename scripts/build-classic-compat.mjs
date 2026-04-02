@@ -12,9 +12,9 @@ import {
 import { join, relative, resolve } from "node:path";
 
 const root = process.cwd();
-const oldProjectDir = resolve(root, "old_project");
-const oldStaticDir = resolve(oldProjectDir, "static");
-const oldHashedAssetsDir = resolve(oldStaticDir, "_assets");
+const classicSourceDir = resolve(root, "classic_source");
+const classicSourceStaticDir = resolve(classicSourceDir, "static");
+const classicSourceHashedAssetsDir = resolve(classicSourceStaticDir, "_assets");
 const legacyResourcesDir = resolve(root, "public", "legacy", "resources");
 const targetClassicDir = resolve(root, "public", "classic");
 const targetClassicIndexPath = resolve(targetClassicDir, "index.html");
@@ -110,9 +110,11 @@ function replaceTemplatePlaceholders(indexHtml, assetManifestJson) {
 }
 
 function runLegacyBuild() {
+  ensureClassicSourceDependencies();
+
   const commands = [
-    "bun run --cwd old_project build-prod",
-    "npm --prefix old_project run build-prod",
+    "bun run --cwd classic_source build-prod",
+    "npm --prefix classic_source run build-prod",
   ];
 
   for (const command of commands) {
@@ -127,7 +129,36 @@ function runLegacyBuild() {
     }
   }
 
-  throw new Error("Failed to build old project with bun and npm fallbacks.");
+  throw new Error("Failed to build classic source with bun and npm fallbacks.");
+}
+
+function ensureClassicSourceDependencies() {
+  const nodeModulesDir = resolve(classicSourceDir, "node_modules");
+  const concurrentlyBin = resolve(nodeModulesDir, ".bin", "concurrently");
+  const concurrentlyBinCmd = resolve(nodeModulesDir, ".bin", "concurrently.cmd");
+  if (existsSync(concurrentlyBin) || existsSync(concurrentlyBinCmd)) {
+    return;
+  }
+
+  console.log("Installing classic_source dependencies...");
+  const commands = [
+    "bun install --cwd classic_source",
+    "npm --prefix classic_source install",
+  ];
+
+  for (const command of commands) {
+    try {
+      execSync(command, {
+        cwd: root,
+        stdio: "inherit",
+      });
+      return;
+    } catch (error) {
+      console.warn(`Dependency install failed (${command}), trying fallback...`);
+    }
+  }
+
+  throw new Error("Failed to install classic_source dependencies.");
 }
 
 function rewriteTextFilesRecursively(startDir) {
@@ -168,22 +199,22 @@ if (!existsSync(legacyResourcesDir)) {
   process.exit(1);
 }
 
-if (!existsSync(oldProjectDir)) {
+if (!existsSync(classicSourceDir)) {
   if (existsSync(targetClassicIndexPath)) {
-    console.log("old_project not found. Using existing committed classic bundle.");
+    console.log("classic_source not found. Using existing committed classic bundle.");
     process.exit(0);
   }
   console.error(
-    "Missing old_project directory and no committed public/classic bundle found.",
+    "Missing classic_source directory and no committed public/classic bundle found.",
   );
   process.exit(1);
 }
 
-console.log("Building old project production bundle...");
+console.log("Building classic source production bundle...");
 runLegacyBuild();
 
-if (!existsSync(oldStaticDir)) {
-  console.error("Expected old_project/static after build.");
+if (!existsSync(classicSourceStaticDir)) {
+  console.error("Expected classic_source/static after build.");
   process.exit(1);
 }
 
@@ -196,25 +227,25 @@ if (existsSync(targetHashedAssetsDir)) {
   rmSync(targetHashedAssetsDir, { recursive: true, force: true });
 }
 
-const sourceAssetsDir = resolve(oldStaticDir, "assets");
-const sourceSoundsDir = resolve(oldStaticDir, "sounds");
+const sourceAssetsDir = resolve(classicSourceStaticDir, "assets");
+const sourceSoundsDir = resolve(classicSourceStaticDir, "sounds");
 if (!existsSync(sourceAssetsDir)) {
-  console.error("Missing old_project/static/assets. Build output is incomplete.");
+  console.error("Missing classic_source/static/assets. Build output is incomplete.");
   process.exit(1);
 }
-if (!existsSync(oldHashedAssetsDir)) {
-  console.error("Missing old_project/static/_assets. Build output is incomplete.");
+if (!existsSync(classicSourceHashedAssetsDir)) {
+  console.error("Missing classic_source/static/_assets. Build output is incomplete.");
   process.exit(1);
 }
 cpSync(sourceAssetsDir, resolve(targetClassicDir, "assets"), { recursive: true });
 if (existsSync(sourceSoundsDir)) {
   cpSync(sourceSoundsDir, resolve(targetClassicDir, "sounds"), { recursive: true });
 }
-cpSync(oldHashedAssetsDir, targetHashedAssetsDir, { recursive: true });
+cpSync(classicSourceHashedAssetsDir, targetHashedAssetsDir, { recursive: true });
 
-const sourceIndexPath = resolve(oldStaticDir, "index.html");
+const sourceIndexPath = resolve(classicSourceStaticDir, "index.html");
 if (!existsSync(sourceIndexPath)) {
-  console.error("Missing old_project/static/index.html.");
+  console.error("Missing classic_source/static/index.html.");
   process.exit(1);
 }
 

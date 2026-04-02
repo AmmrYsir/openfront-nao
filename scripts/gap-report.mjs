@@ -27,45 +27,45 @@ function safeCount(path, extension) {
   return existsSync(path) ? countFiles(path, extension) : 0;
 }
 
-const oldSrcTs = folderCount(resolve(repoRoot, "old_project", "src"));
+const oldSrcTs = folderCount(resolve(repoRoot, "classic_source", "src"));
 const newSrcTs = folderCount(resolve(repoRoot, "src"));
-const oldTests = safeCount(resolve(repoRoot, "old_project", "tests"), ".test.ts");
+const oldTests = safeCount(resolve(repoRoot, "classic_source", "tests"), ".test.ts");
 const newTests = safeCount(resolve(repoRoot, "tests"), ".test.ts");
 
 const parityChecks = [
   {
     capability: "Singleplayer Modal",
-    oldPath: "old_project/src/client/SinglePlayerModal.ts",
+    oldPath: "classic_source/src/client/SinglePlayerModal.ts",
     newPath: "src/ui/pages/SinglePlayerModal.ts",
     bridgePaths: ["src/ui/pages/ClassicPageController.ts", "public/classic/index.html"],
   },
   {
     capability: "Game Mode Selector",
-    oldPath: "old_project/src/client/GameModeSelector.ts",
+    oldPath: "classic_source/src/client/GameModeSelector.ts",
     newPath: "src/ui/pages/GameModeSelector.ts",
     bridgePaths: ["src/ui/pages/ClassicPageController.ts", "public/classic/index.html"],
   },
   {
     capability: "Local Solo Server Flow",
-    oldPath: "old_project/src/client/LocalServer.ts",
+    oldPath: "classic_source/src/client/LocalServer.ts",
     newPath: "src/client/solo/LocalServer.ts",
     bridgePaths: ["src/ui/pages/ClassicPageController.ts", "public/classic/index.html"],
   },
   {
     capability: "Canvas Renderer",
-    oldPath: "old_project/src/client/graphics/GameRenderer.ts",
+    oldPath: "classic_source/src/client/graphics/GameRenderer.ts",
     newPath: "src/ui/runtime/GameRenderer.ts",
     bridgePaths: ["src/ui/pages/ClassicPageController.ts", "public/classic/index.html"],
   },
   {
     capability: "Client Game Runner",
-    oldPath: "old_project/src/client/ClientGameRunner.ts",
+    oldPath: "classic_source/src/client/ClientGameRunner.ts",
     newPath: "src/ui/runtime/ClientGameRunner.ts",
     bridgePaths: ["src/ui/pages/ClassicPageController.ts", "public/classic/index.html"],
   },
   {
     capability: "Classic UI Bridge",
-    oldPath: "old_project/static/index.html",
+    oldPath: "classic_source/static/index.html",
     newPath: "src/ui/pages/ClassicPageController.ts",
     bridgePaths: ["public/classic/index.html"],
   },
