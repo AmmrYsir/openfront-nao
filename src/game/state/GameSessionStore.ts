@@ -3,6 +3,7 @@ import {
   type ActionCounters,
   createActionCounters,
 } from "./ActionCounters";
+import { ProjectedWorldState } from "./ProjectedWorldState";
 
 export interface GameSessionSnapshot {
   turnNumber: number;
@@ -24,6 +25,12 @@ export interface GameSessionSnapshot {
   donatedTroopsTotal: number;
   builtUnitTotal: number;
   lastConfigPatchSize: number;
+  projectedPlayerCount: number;
+  projectedAllianceCount: number;
+  pendingAllianceRequestCount: number;
+  pendingAttackCount: number;
+  pendingBoatAttackCount: number;
+  kickedPlayerCount: number;
   mapId: string | null;
   mapSize: string | null;
   mapLoaded: boolean;
@@ -49,30 +56,10 @@ export class GameSessionStore {
   private paused = false;
   private spawnedTiles = new Set<number>();
   private lastSpawnTile: number | null = null;
-  private disconnectedClients = new Set<string>();
-  private embargoedPlayers = new Set<string>();
-  private targetedPlayers = new Set<string>();
+  private projectedWorld = new ProjectedWorldState();
   private actionCounters = createActionCounters();
   private donatedGoldTotal = 0;
   private donatedTroopsTotal = 0;
-  private builtUnitCountByType: Record<UnitType, number> = {
-    Transport: 0,
-    Warship: 0,
-    Shell: 0,
-    SAMMissile: 0,
-    Port: 0,
-    "Atom Bomb": 0,
-    "Hydrogen Bomb": 0,
-    "Trade Ship": 0,
-    "Missile Silo": 0,
-    "Defense Post": 0,
-    "SAM Launcher": 0,
-    City: 0,
-    MIRV: 0,
-    "MIRV Warhead": 0,
-    Train: 0,
-    Factory: 0,
-  };
   private lastConfigPatchSize = 0;
   private mapId: string | null = null;
   private mapSize: string | null = null;
@@ -152,51 +139,106 @@ export class GameSessionStore {
     this.paused = paused;
   }
 
-  markSpawn(tile: number): void {
+  markSpawn(clientID: string, tile: number): void {
     this.spawnedTiles.add(tile);
     this.lastSpawnTile = tile;
+    this.projectedWorld.recordSpawn(clientID, tile);
   }
 
   setPlayerDisconnected(clientID: string, disconnected: boolean): void {
-    if (disconnected) {
-      this.disconnectedClients.add(clientID);
-    } else {
-      this.disconnectedClients.delete(clientID);
-    }
+    this.projectedWorld.recordDisconnected(clientID, disconnected);
   }
 
-  setEmbargo(targetID: string, active: boolean): void {
-    if (active) {
-      this.embargoedPlayers.add(targetID);
-    } else {
-      this.embargoedPlayers.delete(targetID);
-    }
+  setEmbargo(playerID: string, targetID: string, active: boolean): void {
+    this.projectedWorld.recordEmbargo(playerID, targetID, active);
   }
 
-  setTargetPlayer(targetID: string): void {
-    this.targetedPlayers.add(targetID);
+  setTargetPlayer(playerID: string, targetID: string): void {
+    this.projectedWorld.recordTarget(playerID, targetID);
   }
 
-  addDonatedGold(amount: number | null): void {
+  addDonatedGold(
+    senderID: string,
+    recipientID: string,
+    amount: number | null,
+  ): void {
     if (amount === null) {
       return;
     }
     this.donatedGoldTotal += Math.max(0, amount);
+    this.projectedWorld.recordDonation(senderID, recipientID, "gold", amount);
   }
 
-  addDonatedTroops(amount: number | null): void {
+  addDonatedTroops(
+    senderID: string,
+    recipientID: string,
+    amount: number | null,
+  ): void {
     if (amount === null) {
       return;
     }
     this.donatedTroopsTotal += Math.max(0, amount);
+    this.projectedWorld.recordDonation(senderID, recipientID, "troops", amount);
   }
 
-  incrementBuiltUnit(unitType: UnitType): void {
-    this.builtUnitCountByType[unitType] += 1;
+  incrementBuiltUnit(playerID: string, unitType: UnitType): void {
+    this.projectedWorld.recordBuildUnit(playerID, unitType);
   }
 
   setLastConfigPatchSize(size: number): void {
     this.lastConfigPatchSize = Math.max(0, size);
+  }
+
+  recordAttack(
+    attackerID: string,
+    targetID: string | null,
+    troops: number | null,
+  ): void {
+    this.projectedWorld.recordAttack(attackerID, targetID, troops);
+  }
+
+  recordCancelAttack(): void {
+    this.projectedWorld.recordCancelAttack();
+  }
+
+  recordBoatAttack(attackerID: string, troops: number): void {
+    this.projectedWorld.recordBoatAttack(attackerID, troops);
+  }
+
+  recordCancelBoat(): void {
+    this.projectedWorld.recordCancelBoat();
+  }
+
+  recordAllianceRequest(requestorID: string, recipientID: string): void {
+    this.projectedWorld.recordAllianceRequest(requestorID, recipientID);
+  }
+
+  recordAllianceReject(requestorID: string, rejectorID: string): void {
+    this.projectedWorld.recordAllianceReject(requestorID, rejectorID);
+  }
+
+  recordAllianceExtension(senderID: string, recipientID: string): void {
+    this.projectedWorld.recordAllianceExtension(senderID, recipientID);
+  }
+
+  recordBreakAlliance(playerA: string, playerB: string): void {
+    this.projectedWorld.recordBreakAlliance(playerA, playerB);
+  }
+
+  recordUpgradeStructure(playerID: string): void {
+    this.projectedWorld.recordUpgradeStructure(playerID);
+  }
+
+  recordDeleteUnit(playerID: string): void {
+    this.projectedWorld.recordDeleteUnit(playerID);
+  }
+
+  recordMoveWarship(playerID: string): void {
+    this.projectedWorld.recordMoveWarship(playerID);
+  }
+
+  recordKickPlayer(playerID: string): void {
+    this.projectedWorld.recordKickPlayer(playerID);
   }
 
   setMapBootstrap(
@@ -223,6 +265,8 @@ export class GameSessionStore {
   }
 
   snapshot(): GameSessionSnapshot {
+    const projectedSummary = this.projectedWorld.getSummary();
+
     return {
       turnNumber: this.turnNumber,
       pendingTurnCount: this.pendingTurns.length,
@@ -235,19 +279,22 @@ export class GameSessionStore {
       paused: this.paused,
       spawnedTileCount: this.spawnedTiles.size,
       lastSpawnTile: this.lastSpawnTile,
-      disconnectedClientCount: this.disconnectedClients.size,
-      activeEmbargoCount: this.embargoedPlayers.size,
-      targetedPlayerCount: this.targetedPlayers.size,
+      disconnectedClientCount: projectedSummary.disconnectedPlayerCount,
+      activeEmbargoCount: projectedSummary.activeEmbargoCount,
+      targetedPlayerCount: projectedSummary.targetedPlayerCount,
       actionCounters: {
         ...this.actionCounters,
       },
       donatedGoldTotal: this.donatedGoldTotal,
       donatedTroopsTotal: this.donatedTroopsTotal,
-      builtUnitTotal: Object.values(this.builtUnitCountByType).reduce(
-        (total, count) => total + count,
-        0,
-      ),
+      builtUnitTotal: projectedSummary.builtUnitTotal,
       lastConfigPatchSize: this.lastConfigPatchSize,
+      projectedPlayerCount: projectedSummary.playerCount,
+      projectedAllianceCount: projectedSummary.allianceCount,
+      pendingAllianceRequestCount: projectedSummary.pendingAllianceRequestCount,
+      pendingAttackCount: projectedSummary.pendingAttackCount,
+      pendingBoatAttackCount: projectedSummary.pendingBoatAttackCount,
+      kickedPlayerCount: projectedSummary.kickedPlayerCount,
       mapId: this.mapId,
       mapSize: this.mapSize,
       mapLoaded: this.mapLoaded,

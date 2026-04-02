@@ -3,11 +3,12 @@ import type { HandlerMap } from "./types";
 type MovementHandlerKeys = "move_warship" | "spawn";
 
 export const movementHandlers: Pick<HandlerMap, MovementHandlerKeys> = {
-  move_warship: ({ store }) => {
+  move_warship: ({ store }, intent) => {
     store.recordMovementAction();
+    store.recordMoveWarship(intent.clientID);
   },
   spawn: ({ store }, intent) => {
     store.recordMovementAction();
-    store.markSpawn(intent.tile);
+    store.markSpawn(intent.clientID, intent.tile);
   },
 };

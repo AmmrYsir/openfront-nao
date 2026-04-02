@@ -62,6 +62,8 @@ This document tracks the migration from `old_project` into the new Bun + Vite + 
 - Added projected state counters for combat, movement, diplomacy, economy, construction, social, moderation, and configuration flows.
 - Upgraded debug HUD to visualize projected simulation metrics from worker snapshots.
 - Added map runtime config and worker bootstrap map loading against copied legacy assets.
+- Added deterministic projected world-state transitions for key gameplay domains:
+  spawn, attack/boat queues, alliance request/formation/break/extension, embargo edges, donations, unit build counts, and moderation flags.
 
 ### Pending
 

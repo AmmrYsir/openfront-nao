@@ -34,6 +34,12 @@ export class Hud {
   private readonly mapSourceValue: HTMLElement;
   private readonly mapDimensionsValue: HTMLElement;
   private readonly nationCountValue: HTMLElement;
+  private readonly projectedPlayerCountValue: HTMLElement;
+  private readonly projectedAllianceCountValue: HTMLElement;
+  private readonly pendingAllianceRequestsValue: HTMLElement;
+  private readonly pendingAttackCountValue: HTMLElement;
+  private readonly pendingBoatAttackCountValue: HTMLElement;
+  private readonly kickedPlayerCountValue: HTMLElement;
   private readonly queueTurnButton: HTMLButtonElement;
   private readonly queueTurnHandler: () => void;
 
@@ -84,6 +90,12 @@ export class Hud {
             <div><dt>Map Source</dt><dd id="hud-map-source">n/a</dd></div>
             <div><dt>Map Dimensions</dt><dd id="hud-map-dimensions">n/a</dd></div>
             <div><dt>Nations</dt><dd id="hud-map-nations">0</dd></div>
+            <div><dt>Projected Players</dt><dd id="hud-projected-players">0</dd></div>
+            <div><dt>Projected Alliances</dt><dd id="hud-projected-alliances">0</dd></div>
+            <div><dt>Pending Alliance Requests</dt><dd id="hud-projected-alliance-requests">0</dd></div>
+            <div><dt>Pending Ground Attacks</dt><dd id="hud-projected-attacks">0</dd></div>
+            <div><dt>Pending Boat Attacks</dt><dd id="hud-projected-boat-attacks">0</dd></div>
+            <div><dt>Kicked Players</dt><dd id="hud-projected-kicked">0</dd></div>
           </dl>
         </section>
       </main>
@@ -152,6 +164,21 @@ export class Hud {
       "#hud-map-dimensions",
     );
     const nationCountValue = host.querySelector<HTMLElement>("#hud-map-nations");
+    const projectedPlayerCountValue =
+      host.querySelector<HTMLElement>("#hud-projected-players");
+    const projectedAllianceCountValue = host.querySelector<HTMLElement>(
+      "#hud-projected-alliances",
+    );
+    const pendingAllianceRequestsValue = host.querySelector<HTMLElement>(
+      "#hud-projected-alliance-requests",
+    );
+    const pendingAttackCountValue =
+      host.querySelector<HTMLElement>("#hud-projected-attacks");
+    const pendingBoatAttackCountValue = host.querySelector<HTMLElement>(
+      "#hud-projected-boat-attacks",
+    );
+    const kickedPlayerCountValue =
+      host.querySelector<HTMLElement>("#hud-projected-kicked");
     const queueTurnButton =
       host.querySelector<HTMLButtonElement>("#queue-turn-btn");
 
@@ -188,6 +215,12 @@ export class Hud {
       !mapSourceValue ||
       !mapDimensionsValue ||
       !nationCountValue ||
+      !projectedPlayerCountValue ||
+      !projectedAllianceCountValue ||
+      !pendingAllianceRequestsValue ||
+      !pendingAttackCountValue ||
+      !pendingBoatAttackCountValue ||
+      !kickedPlayerCountValue ||
       !queueTurnButton
     ) {
       throw new Error("Failed to initialize HUD.");
@@ -225,6 +258,12 @@ export class Hud {
     this.mapSourceValue = mapSourceValue;
     this.mapDimensionsValue = mapDimensionsValue;
     this.nationCountValue = nationCountValue;
+    this.projectedPlayerCountValue = projectedPlayerCountValue;
+    this.projectedAllianceCountValue = projectedAllianceCountValue;
+    this.pendingAllianceRequestsValue = pendingAllianceRequestsValue;
+    this.pendingAttackCountValue = pendingAttackCountValue;
+    this.pendingBoatAttackCountValue = pendingBoatAttackCountValue;
+    this.kickedPlayerCountValue = kickedPlayerCountValue;
     this.queueTurnButton = queueTurnButton;
     this.queueTurnHandler = onQueueTurnRequested;
     this.queueTurnButton.addEventListener("click", this.queueTurnHandler);
@@ -301,6 +340,24 @@ export class Hud {
         ? `${snapshot.mapWidth}x${snapshot.mapHeight} (mini ${snapshot.miniMapWidth}x${snapshot.miniMapHeight})`
         : "n/a";
     this.nationCountValue.textContent = renderNumber(snapshot.nationCount);
+    this.projectedPlayerCountValue.textContent = renderNumber(
+      snapshot.projectedPlayerCount,
+    );
+    this.projectedAllianceCountValue.textContent = renderNumber(
+      snapshot.projectedAllianceCount,
+    );
+    this.pendingAllianceRequestsValue.textContent = renderNumber(
+      snapshot.pendingAllianceRequestCount,
+    );
+    this.pendingAttackCountValue.textContent = renderNumber(
+      snapshot.pendingAttackCount,
+    );
+    this.pendingBoatAttackCountValue.textContent = renderNumber(
+      snapshot.pendingBoatAttackCount,
+    );
+    this.kickedPlayerCountValue.textContent = renderNumber(
+      snapshot.kickedPlayerCount,
+    );
   }
 
   dispose(): void {

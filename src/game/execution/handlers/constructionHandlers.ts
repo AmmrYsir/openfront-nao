@@ -8,12 +8,14 @@ type ConstructionHandlerKeys =
 export const constructionHandlers: Pick<HandlerMap, ConstructionHandlerKeys> = {
   build_unit: ({ store }, intent) => {
     store.recordConstructionAction();
-    store.incrementBuiltUnit(intent.unit);
+    store.incrementBuiltUnit(intent.clientID, intent.unit);
   },
-  upgrade_structure: ({ store }) => {
+  upgrade_structure: ({ store }, intent) => {
     store.recordConstructionAction();
+    store.recordUpgradeStructure(intent.clientID);
   },
-  delete_unit: ({ store }) => {
+  delete_unit: ({ store }, intent) => {
     store.recordConstructionAction();
+    store.recordDeleteUnit(intent.clientID);
   },
 };

@@ -5,10 +5,10 @@ type EconomyHandlerKeys = "donate_gold" | "donate_troops";
 export const economyHandlers: Pick<HandlerMap, EconomyHandlerKeys> = {
   donate_gold: ({ store }, intent) => {
     store.recordEconomyAction();
-    store.addDonatedGold(intent.gold);
+    store.addDonatedGold(intent.clientID, intent.recipient, intent.gold);
   },
   donate_troops: ({ store }, intent) => {
     store.recordEconomyAction();
-    store.addDonatedTroops(intent.troops);
+    store.addDonatedTroops(intent.clientID, intent.recipient, intent.troops);
   },
 };
