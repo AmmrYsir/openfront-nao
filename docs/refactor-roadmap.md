@@ -136,6 +136,8 @@ This document tracks the migration from `old_project` into the new Bun + Vite + 
   new `GameModeSelector` and `SinglePlayerModal` modules are now integrated into the play page shell, backed by typed `LocalServer` solo session bootstrap logic and local history persistence.
 - Added phase-4 classic-only frontend integration:
   runtime boot now mounts directly into `ClassicPageController` and `AppUiRoot` classic shell, removing active usage of the experimental Command HUD/play-shell flow while preserving migrated backend/postgres infrastructure.
+- Added phase-5 full-screen classic entry cleanup:
+  frontend entry (`src/main.ts`) now routes straight to `/classic/index.html` so users land in pure classic gameplay UI without additional custom wrapper/status UI.
 
 ### Pending
 

@@ -107,6 +107,12 @@ This plan migrates the remaining `old_project` gameplay/frontend stack into the 
 - Tighten types, boundaries, and performance hotspots.
 - Prepare release quality checks.
 
+### Phase 5A Milestone (Completed)
+
+- Removed remaining active wrapper UI from the entry path.
+- `src/main.ts` now routes directly to `/classic/index.html` while preserving query/hash.
+- Active frontend experience is now full-screen classic OpenFront only, with no custom runtime status strips or extra shell UI.
+
 ### Exit Criteria
 
 - All phase acceptance checks pass.
@@ -129,5 +135,5 @@ This plan migrates the remaining `old_project` gameplay/frontend stack into the 
 - Phase 1: completed
 - Phase 2: completed (classic parity bridge active)
 - Phase 3: superseded by classic-only frontend mode
-- Phase 4: in progress (classic-only integration milestone complete)
-- Phase 5: pending
+- Phase 4: completed (classic-only integration milestone complete)
+- Phase 5: completed (full-screen classic-only entry and cleanup)
