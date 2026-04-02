@@ -1,4 +1,5 @@
 import { bindPageRouterToDom, PageRouter } from "./navigation/PageRouter";
+import { legacyResourceUrl } from "../core/assets/legacyAssets";
 
 interface AppUiRootOptions {
   hasLiveTransport: boolean;
@@ -11,6 +12,86 @@ type LiveTransportState =
   | "disconnected"
   | "connecting"
   | "connected";
+
+interface NavItemDefinition {
+  pageId: string;
+  label: string;
+}
+
+interface PagePanelDefinition {
+  pageId: string;
+  statusId: string;
+  statusLabel: string;
+  hostId: string;
+}
+
+const NAV_ITEMS: ReadonlyArray<NavItemDefinition> = [
+  { pageId: "page-play", label: "Play" },
+  { pageId: "page-account", label: "Account" },
+  { pageId: "page-lobby", label: "Lobby" },
+  { pageId: "page-leaderboard", label: "Leaderboard" },
+  { pageId: "page-settings", label: "Settings" },
+  { pageId: "page-news", label: "News" },
+  { pageId: "page-help", label: "Help" },
+];
+
+const CONTENT_PANELS: ReadonlyArray<PagePanelDefinition> = [
+  {
+    pageId: "page-account",
+    statusId: "account-status",
+    statusLabel: "Account status",
+    hostId: "account-panel-host",
+  },
+  {
+    pageId: "page-lobby",
+    statusId: "lobby-status",
+    statusLabel: "Lobby status",
+    hostId: "lobby-panel-host",
+  },
+  {
+    pageId: "page-leaderboard",
+    statusId: "leaderboard-status",
+    statusLabel: "Leaderboard status",
+    hostId: "leaderboard-panel-host",
+  },
+  {
+    pageId: "page-settings",
+    statusId: "settings-status",
+    statusLabel: "Settings status",
+    hostId: "settings-panel-host",
+  },
+  {
+    pageId: "page-news",
+    statusId: "news-status",
+    statusLabel: "News status",
+    hostId: "news-panel-host",
+  },
+  {
+    pageId: "page-help",
+    statusId: "help-status",
+    statusLabel: "Help status",
+    hostId: "help-panel-host",
+  },
+];
+
+function renderNavButtons(className: string): string {
+  return NAV_ITEMS.map((item, index) => {
+    const activeClass = index === 0 ? " active" : "";
+    return `<button class="${className}${activeClass}" data-page="${item.pageId}" type="button">${item.label}</button>`;
+  }).join("");
+}
+
+function renderContentPanel(panel: PagePanelDefinition): string {
+  return `
+    <section data-page-panel="${panel.pageId}" id="${panel.pageId}" class="page-panel" hidden>
+      <div class="panel-status-row">
+        <span class="panel-status-label">${panel.statusLabel}</span>
+        <span id="${panel.statusId}" class="panel-status-value">Idle.</span>
+      </div>
+      <div id="${panel.hostId}"></div>
+    </section>
+  `;
+}
 
 declare global {
   interface Window {
@@ -37,6 +118,9 @@ export class AppUiRoot {
   private readonly helpPanelHost: HTMLElement | null;
   private readonly connectButton: HTMLButtonElement | null;
   private readonly disconnectButton: HTMLButtonElement | null;
+  private readonly mobileMenu: HTMLElement | null;
+  private readonly mobileBackdrop: HTMLElement | null;
+  private readonly mobileToggle: HTMLButtonElement | null;
   private readonly hasLiveTransport: boolean;
   private readonly onConnectLiveTransport?: () => void;
   private readonly onDisconnectLiveTransport?: () => void;
@@ -49,70 +133,75 @@ export class AppUiRoot {
     this.onConnectLiveTransport = options.onConnectLiveTransport;
     this.onDisconnectLiveTransport = options.onDisconnectLiveTransport;
 
+    host.style.setProperty(
+      "--legacy-background-image",
+      `url("${legacyResourceUrl("images/background.webp")}")`,
+    );
+    host.style.setProperty(
+      "--legacy-desktop-logo-image",
+      `url("${legacyResourceUrl("images/OpenFront.webp")}")`,
+    );
+    host.style.setProperty(
+      "--legacy-mobile-logo-image",
+      `url("${legacyResourceUrl("images/OF.webp")}")`,
+    );
+    host.style.setProperty(
+      "--legacy-map-preview-image",
+      `url("${legacyResourceUrl("images/EuropeBackgroundBlurred.webp")}")`,
+    );
+
     host.innerHTML = `
-      <div class="ui-root">
-        <nav class="top-nav" aria-label="Main Navigation">
-          <button class="nav-menu-item active" data-page="page-play" type="button">Play</button>
-          <button class="nav-menu-item" data-page="page-account" type="button">Account</button>
-          <button class="nav-menu-item" data-page="page-lobby" type="button">Lobby</button>
-          <button class="nav-menu-item" data-page="page-leaderboard" type="button">Leaderboard</button>
-          <button class="nav-menu-item" data-page="page-settings" type="button">Settings</button>
-          <button class="nav-menu-item" data-page="page-news" type="button">News</button>
-          <button class="nav-menu-item" data-page="page-help" type="button">Help</button>
-        </nav>
-        <section data-page-panel="page-play" id="page-play" class="page-panel active">
-          <section class="transport-panel">
-            <div class="transport-title">Runtime Status</div>
-            <div id="transport-status" class="transport-status">Booting simulation runtime...</div>
-            <div class="transport-controls">
-              <button id="transport-connect" type="button">Connect Live Turns</button>
-              <button id="transport-disconnect" type="button">Disconnect Live Turns</button>
+      <div class="legacy-ui-root">
+        <div class="legacy-background" aria-hidden="true">
+          <div class="legacy-background-layer"></div>
+          <div class="legacy-background-logo legacy-background-logo--desktop"></div>
+          <div class="legacy-background-logo legacy-background-logo--mobile"></div>
+        </div>
+
+        <div id="mobile-menu-backdrop" class="legacy-mobile-menu-backdrop" hidden></div>
+        <aside id="legacy-mobile-menu" class="legacy-mobile-menu" hidden>
+          <div class="legacy-mobile-menu-header">Menu</div>
+          <nav class="legacy-mobile-nav" aria-label="Mobile Navigation">
+            ${renderNavButtons("nav-menu-item legacy-mobile-nav-item")}
+          </nav>
+        </aside>
+
+        <div class="legacy-shell">
+          <nav class="legacy-top-nav" aria-label="Main Navigation">
+            <button
+              id="legacy-mobile-menu-toggle"
+              class="legacy-mobile-menu-toggle"
+              type="button"
+              aria-label="Open menu"
+              aria-expanded="false"
+              aria-controls="legacy-mobile-menu"
+            >
+              ☰
+            </button>
+            <div class="legacy-brand" aria-label="OpenFront logo"></div>
+            <div class="legacy-nav-links">
+              ${renderNavButtons("nav-menu-item legacy-nav-item")}
             </div>
-          </section>
-          <section id="hud-mount"></section>
-        </section>
-        <section data-page-panel="page-account" id="page-account" class="page-panel" hidden>
-          <div class="panel-status-row">
-            <span class="panel-status-label">Account status</span>
-            <span id="account-status" class="panel-status-value">Idle.</span>
-          </div>
-          <div id="account-panel-host"></div>
-        </section>
-        <section data-page-panel="page-lobby" id="page-lobby" class="page-panel" hidden>
-          <div class="panel-status-row">
-            <span class="panel-status-label">Lobby status</span>
-            <span id="lobby-status" class="panel-status-value">Idle.</span>
-          </div>
-          <div id="lobby-panel-host"></div>
-        </section>
-        <section data-page-panel="page-leaderboard" id="page-leaderboard" class="page-panel" hidden>
-          <div class="panel-status-row">
-            <span class="panel-status-label">Leaderboard status</span>
-            <span id="leaderboard-status" class="panel-status-value">Idle.</span>
-          </div>
-          <div id="leaderboard-panel-host"></div>
-        </section>
-        <section data-page-panel="page-settings" id="page-settings" class="page-panel" hidden>
-          <div class="panel-status-row">
-            <span class="panel-status-label">Settings status</span>
-            <span id="settings-status" class="panel-status-value">Idle.</span>
-          </div>
-          <div id="settings-panel-host"></div>
-        </section>
-        <section data-page-panel="page-news" id="page-news" class="page-panel" hidden>
-          <div class="panel-status-row">
-            <span class="panel-status-label">News status</span>
-            <span id="news-status" class="panel-status-value">Idle.</span>
-          </div>
-          <div id="news-panel-host"></div>
-        </section>
-        <section data-page-panel="page-help" id="page-help" class="page-panel" hidden>
-          <div class="panel-status-row">
-            <span class="panel-status-label">Help status</span>
-            <span id="help-status" class="panel-status-value">Idle.</span>
-          </div>
-          <div id="help-panel-host"></div>
-        </section>
+          </nav>
+
+          <main class="legacy-main-content">
+            <section data-page-panel="page-play" id="page-play" class="page-panel active">
+              <section class="transport-panel">
+                <div class="transport-title">Runtime Status</div>
+                <div id="transport-status" class="transport-status">Booting simulation runtime...</div>
+                <div class="transport-controls">
+                  <button id="transport-connect" type="button">Connect Live Turns</button>
+                  <button id="transport-disconnect" type="button">Disconnect Live Turns</button>
+                </div>
+              </section>
+              <section class="legacy-playfield">
+                <div class="legacy-playfield-map" aria-hidden="true"></div>
+                <section id="hud-mount" class="legacy-hud-host"></section>
+              </section>
+            </section>
+            ${CONTENT_PANELS.map((panel) => renderContentPanel(panel)).join("")}
+          </main>
+        </div>
       </div>
     `;
 
@@ -143,6 +232,11 @@ export class AppUiRoot {
     const disconnectButton = host.querySelector<HTMLButtonElement>(
       "#transport-disconnect",
     );
+    const mobileMenu = host.querySelector<HTMLElement>("#legacy-mobile-menu");
+    const mobileBackdrop = host.querySelector<HTMLElement>("#mobile-menu-backdrop");
+    const mobileToggle = host.querySelector<HTMLButtonElement>(
+      "#legacy-mobile-menu-toggle",
+    );
 
     if (!hudMount || !statusValue) {
       throw new Error("Failed to initialize app UI root.");
@@ -164,13 +258,22 @@ export class AppUiRoot {
     this.helpPanelHost = helpPanelHost;
     this.connectButton = connectButton;
     this.disconnectButton = disconnectButton;
+    this.mobileMenu = mobileMenu;
+    this.mobileBackdrop = mobileBackdrop;
+    this.mobileToggle = mobileToggle;
 
     this.connectButton?.addEventListener("click", this.handleConnectClick);
     this.disconnectButton?.addEventListener("click", this.handleDisconnectClick);
     this.root.addEventListener("click", this.handleNavigationClick);
+    this.mobileToggle?.addEventListener("click", this.handleMobileMenuToggle);
+    this.mobileBackdrop?.addEventListener("click", this.handleMobileBackdropClick);
+    if (typeof window !== "undefined") {
+      window.addEventListener("keydown", this.handleWindowKeydown);
+    }
 
     this.detachPageBinding = bindPageRouterToDom(this.pageRouter, host);
     this.detachPageObserver = this.pageRouter.onChange((pageId) => {
+      this.closeMobileMenu();
       if (typeof window !== "undefined") {
         window.currentPageId = pageId;
       }
@@ -313,6 +416,11 @@ export class AppUiRoot {
     this.connectButton?.removeEventListener("click", this.handleConnectClick);
     this.disconnectButton?.removeEventListener("click", this.handleDisconnectClick);
     this.root.removeEventListener("click", this.handleNavigationClick);
+    this.mobileToggle?.removeEventListener("click", this.handleMobileMenuToggle);
+    this.mobileBackdrop?.removeEventListener("click", this.handleMobileBackdropClick);
+    if (typeof window !== "undefined") {
+      window.removeEventListener("keydown", this.handleWindowKeydown);
+    }
     this.detachPageBinding();
     this.detachPageObserver();
   }
@@ -337,4 +445,45 @@ export class AppUiRoot {
     }
     this.pageRouter.showPage(pageId);
   };
+
+  private readonly handleMobileMenuToggle = (): void => {
+    if (this.mobileMenu?.hidden ?? true) {
+      this.openMobileMenu();
+      return;
+    }
+    this.closeMobileMenu();
+  };
+
+  private readonly handleMobileBackdropClick = (): void => {
+    this.closeMobileMenu();
+  };
+
+  private readonly handleWindowKeydown = (event: KeyboardEvent): void => {
+    if (event.key !== "Escape") {
+      return;
+    }
+    this.closeMobileMenu();
+  };
+
+  private openMobileMenu(): void {
+    if (!this.mobileMenu || !this.mobileBackdrop || !this.mobileToggle) {
+      return;
+    }
+    this.mobileMenu.hidden = false;
+    this.mobileBackdrop.hidden = false;
+    this.mobileMenu.classList.add("open");
+    this.mobileBackdrop.classList.add("open");
+    this.mobileToggle.setAttribute("aria-expanded", "true");
+  }
+
+  private closeMobileMenu(): void {
+    if (!this.mobileMenu || !this.mobileBackdrop || !this.mobileToggle) {
+      return;
+    }
+    this.mobileMenu.classList.remove("open");
+    this.mobileBackdrop.classList.remove("open");
+    this.mobileMenu.hidden = true;
+    this.mobileBackdrop.hidden = true;
+    this.mobileToggle.setAttribute("aria-expanded", "false");
+  }
 }

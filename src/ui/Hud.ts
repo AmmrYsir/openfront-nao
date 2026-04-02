@@ -163,12 +163,12 @@ export class Hud {
     host.innerHTML = `
       <main class="app-shell">
         <section class="panel">
-          <h1>Openfront Migration Scaffold</h1>
+          <h1>OpenFront Command HUD</h1>
           <p class="subtitle">
-            Architecture-first bootstrap: fixed loop, typed turns, isolated session state.
+            Legacy UI shell running on the new deterministic Bun + Vite runtime.
           </p>
           <div class="controls">
-            <button id="queue-turn-btn" type="button">Queue Sample Turn</button>
+            <button id="queue-turn-btn" type="button">Queue Local Turn</button>
           </div>
           <dl class="metrics">
             <div><dt>Current Turn</dt><dd id="hud-turn-number">0</dd></div>
