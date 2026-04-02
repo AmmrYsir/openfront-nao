@@ -62,6 +62,11 @@ export interface GameSessionSnapshot {
   simulationRichestPlayerGold: number;
   simulationTopTerritoryPlayerId: string | null;
   simulationTopTerritoryTileCount: number;
+  simulationTopTerritoryControlPercentage: number;
+  simulationCurrentTurn: number;
+  simulationInSpawnPhase: boolean;
+  simulationWinnerPlayerId: string | null;
+  simulationWinnerDeclaredTurn: number | null;
   simulationPlayers: SimulationPlayerSnapshot[];
   mapId: string | null;
   mapSize: string | null;
@@ -312,6 +317,10 @@ export class GameSessionStore {
     this.simulationWorld.kickPlayer(playerID);
   }
 
+  processTurnLifecycle(turnNumber: number): void {
+    this.simulationWorld.processTurn(turnNumber);
+  }
+
   isMapTileValid(tile: number): boolean {
     if (!Number.isInteger(tile) || tile < 0) {
       return false;
@@ -448,6 +457,12 @@ export class GameSessionStore {
       simulationRichestPlayerGold: simulationSummary.richestPlayerGold,
       simulationTopTerritoryPlayerId: simulationSummary.topTerritoryPlayerId,
       simulationTopTerritoryTileCount: simulationSummary.topTerritoryTileCount,
+      simulationTopTerritoryControlPercentage:
+        simulationSummary.topTerritoryControlPercentage,
+      simulationCurrentTurn: simulationSummary.currentTurn,
+      simulationInSpawnPhase: simulationSummary.inSpawnPhase,
+      simulationWinnerPlayerId: simulationSummary.winnerPlayerId,
+      simulationWinnerDeclaredTurn: simulationSummary.winnerDeclaredTurn,
       simulationPlayers,
       mapId: this.mapId,
       mapSize: this.mapSize,

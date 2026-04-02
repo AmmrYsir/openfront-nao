@@ -14,6 +14,9 @@ const turnQueueSystem = new TurnQueueSystem(store, {
   applyTurn: (turn) => {
     executionEngine.applyTurn(store, turn);
   },
+  onTurnProcessed: (turn) => {
+    store.processTurnLifecycle(turn.turnNumber);
+  },
 });
 
 let initialized = false;

@@ -137,6 +137,10 @@ export class Hud {
   private readonly simTerritoryTransfersValue: HTMLElement;
   private readonly simRichestPlayerValue: HTMLElement;
   private readonly simTopTerritoryPlayerValue: HTMLElement;
+  private readonly simTopControlValue: HTMLElement;
+  private readonly simTurnValue: HTMLElement;
+  private readonly simPhaseValue: HTMLElement;
+  private readonly simWinnerValue: HTMLElement;
   private readonly projectedPlayersView: HTMLElement;
   private readonly projectedAlliancesView: HTMLElement;
   private readonly projectedPendingRequestsView: HTMLElement;
@@ -219,6 +223,10 @@ export class Hud {
             <div><dt>Sim Territory Transfers</dt><dd id="hud-sim-territory-transfers">0</dd></div>
             <div><dt>Sim Richest Player</dt><dd id="hud-sim-richest-player">n/a</dd></div>
             <div><dt>Sim Top Territory</dt><dd id="hud-sim-top-territory-player">n/a</dd></div>
+            <div><dt>Sim Top Control</dt><dd id="hud-sim-top-control">0%</dd></div>
+            <div><dt>Sim Turn</dt><dd id="hud-sim-turn">0</dd></div>
+            <div><dt>Sim Phase</dt><dd id="hud-sim-phase">spawn</dd></div>
+            <div><dt>Sim Winner</dt><dd id="hud-sim-winner">n/a</dd></div>
           </dl>
           <h2>Projected Players</h2>
           <pre id="hud-projected-players-view" class="hud-projection"></pre>
@@ -372,6 +380,11 @@ export class Hud {
     const simTopTerritoryPlayerValue = host.querySelector<HTMLElement>(
       "#hud-sim-top-territory-player",
     );
+    const simTopControlValue =
+      host.querySelector<HTMLElement>("#hud-sim-top-control");
+    const simTurnValue = host.querySelector<HTMLElement>("#hud-sim-turn");
+    const simPhaseValue = host.querySelector<HTMLElement>("#hud-sim-phase");
+    const simWinnerValue = host.querySelector<HTMLElement>("#hud-sim-winner");
     const projectedPlayersView = host.querySelector<HTMLElement>(
       "#hud-projected-players-view",
     );
@@ -450,6 +463,10 @@ export class Hud {
       !simTerritoryTransfersValue ||
       !simRichestPlayerValue ||
       !simTopTerritoryPlayerValue ||
+      !simTopControlValue ||
+      !simTurnValue ||
+      !simPhaseValue ||
+      !simWinnerValue ||
       !projectedPlayersView ||
       !projectedAlliancesView ||
       !projectedPendingRequestsView ||
@@ -519,6 +536,10 @@ export class Hud {
     this.simTerritoryTransfersValue = simTerritoryTransfersValue;
     this.simRichestPlayerValue = simRichestPlayerValue;
     this.simTopTerritoryPlayerValue = simTopTerritoryPlayerValue;
+    this.simTopControlValue = simTopControlValue;
+    this.simTurnValue = simTurnValue;
+    this.simPhaseValue = simPhaseValue;
+    this.simWinnerValue = simWinnerValue;
     this.projectedPlayersView = projectedPlayersView;
     this.projectedAlliancesView = projectedAlliancesView;
     this.projectedPendingRequestsView = projectedPendingRequestsView;
@@ -682,6 +703,16 @@ export class Hud {
       snapshot.simulationTopTerritoryPlayerId === null
         ? "n/a"
         : `${snapshot.simulationTopTerritoryPlayerId} (${renderNumber(snapshot.simulationTopTerritoryTileCount)} tiles)`;
+    this.simTopControlValue.textContent =
+      `${snapshot.simulationTopTerritoryControlPercentage.toFixed(2)}%`;
+    this.simTurnValue.textContent = renderNumber(snapshot.simulationCurrentTurn);
+    this.simPhaseValue.textContent = snapshot.simulationInSpawnPhase
+      ? "spawn"
+      : "battle";
+    this.simWinnerValue.textContent =
+      snapshot.simulationWinnerPlayerId === null
+        ? "n/a"
+        : `${snapshot.simulationWinnerPlayerId} @ turn ${renderNumber(snapshot.simulationWinnerDeclaredTurn ?? 0)}`;
     this.projectedPlayersView.textContent = formatProjectedPlayers(snapshot);
     this.projectedAlliancesView.textContent = formatProjectedAlliances(snapshot);
     this.projectedPendingRequestsView.textContent =

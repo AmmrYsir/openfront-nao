@@ -1,3 +1,4 @@
+import { LEGACY_SIMULATION_RULES } from "../config/legacySimulationRules";
 import type { UnitType } from "../contracts/turn";
 import { isLandTerrainByte } from "../pathfinding/TerrainBits";
 
@@ -30,6 +31,11 @@ export interface SimulationPlayerSnapshot {
 }
 
 export interface SimulationWorldSummary {
+  currentTurn: number;
+  inSpawnPhase: boolean;
+  winnerPlayerId: string | null;
+  winnerDeclaredTurn: number | null;
+  topTerritoryControlPercentage: number;
   activePlayerCount: number;
   eliminatedPlayerCount: number;
   ownedTileCount: number;
@@ -66,6 +72,11 @@ const BUILD_COST: Record<UnitType, number> = {
 };
 
 const EMPTY_SUMMARY: SimulationWorldSummary = {
+  currentTurn: 0,
+  inSpawnPhase: true,
+  winnerPlayerId: null,
+  winnerDeclaredTurn: null,
+  topTerritoryControlPercentage: 0,
   activePlayerCount: 0,
   eliminatedPlayerCount: 0,
   ownedTileCount: 0,
@@ -78,16 +89,43 @@ const EMPTY_SUMMARY: SimulationWorldSummary = {
   topTerritoryTileCount: 0,
 };
 
+function clamp(value: number, minValue: number, maxValue: number): number {
+  return Math.max(minValue, Math.min(maxValue, value));
+}
+
+function calculateMaxTroopsForPlayer(player: SimulationPlayerState): number {
+  const tileScore = Math.pow(Math.max(0, player.tiles.size), 0.6) * 1000 + 50_000;
+  const cityBonus =
+    player.builtUnits.City * LEGACY_SIMULATION_RULES.cityTroopIncreaseCap;
+  return Math.max(1_000, 2 * tileScore + cityBonus);
+}
+
+function calculateTroopIncrease(player: SimulationPlayerState): number {
+  const maxTroops = calculateMaxTroopsForPlayer(player);
+  const currentTroops = Math.max(0, player.troops);
+  const baseIncrease = 10 + Math.pow(currentTroops, 0.73) / 4;
+  const ratio = clamp(1 - currentTroops / maxTroops, 0, 1);
+  const nextTroops = Math.min(maxTroops, currentTroops + baseIncrease * ratio);
+  return Math.max(0, Math.floor(nextTroops - currentTroops));
+}
+
 export class SimulationWorld {
   private readonly players = new Map<string, SimulationPlayerState>();
   private readonly landTiles = new Set<number>();
   private readonly tileOwner = new Map<number, string>();
   private battlesResolved = 0;
   private territoryTransfers = 0;
+  private currentTurn = 0;
+  private winnerPlayerId: string | null = null;
+  private winnerDeclaredTurn: number | null = null;
 
   initializeTerrain(terrainData: Uint8Array): void {
     this.landTiles.clear();
     this.tileOwner.clear();
+    this.currentTurn = 0;
+    this.winnerPlayerId = null;
+    this.winnerDeclaredTurn = null;
+
     for (const player of this.players.values()) {
       player.tiles.clear();
     }
@@ -265,9 +303,81 @@ export class SimulationWorld {
     player.disconnected = disconnected;
   }
 
+  processTurn(turnNumber: number): void {
+    if (!Number.isFinite(turnNumber)) {
+      return;
+    }
+
+    const targetTurn = Math.max(0, Math.floor(turnNumber));
+    if (targetTurn <= this.currentTurn) {
+      return;
+    }
+
+    for (let turn = this.currentTurn + 1; turn <= targetTurn; turn += 1) {
+      this.currentTurn = turn;
+      this.applyPassiveEconomy();
+      this.evaluateVictory();
+    }
+  }
+
+  private applyPassiveEconomy(): void {
+    for (const player of this.players.values()) {
+      if (player.tiles.size === 0) {
+        continue;
+      }
+
+      player.gold += LEGACY_SIMULATION_RULES.baseGoldIncomePerTick;
+      player.troops += calculateTroopIncrease(player);
+    }
+  }
+
+  private evaluateVictory(): void {
+    if (this.winnerPlayerId !== null) {
+      return;
+    }
+    if (this.landTiles.size === 0) {
+      return;
+    }
+    if (this.currentTurn <= LEGACY_SIMULATION_RULES.spawnPhaseDurationTicks) {
+      return;
+    }
+
+    let topPlayerId: string | null = null;
+    let topTileCount = 0;
+    for (const player of this.players.values()) {
+      if (player.tiles.size > topTileCount) {
+        topPlayerId = player.id;
+        topTileCount = player.tiles.size;
+      }
+    }
+
+    if (topPlayerId === null) {
+      return;
+    }
+
+    const control =
+      (topTileCount / Math.max(1, this.landTiles.size)) * 100;
+    const elapsedSinceSpawn =
+      this.currentTurn - LEGACY_SIMULATION_RULES.spawnPhaseDurationTicks;
+    if (
+      control > LEGACY_SIMULATION_RULES.tilesOwnedToWinPercentage ||
+      elapsedSinceSpawn >= LEGACY_SIMULATION_RULES.forcedWinCheckLimitTicks
+    ) {
+      this.winnerPlayerId = topPlayerId;
+      this.winnerDeclaredTurn = this.currentTurn;
+    }
+  }
+
   getSummary(): SimulationWorldSummary {
     if (this.players.size === 0 || this.landTiles.size === 0) {
-      return EMPTY_SUMMARY;
+      return {
+        ...EMPTY_SUMMARY,
+        currentTurn: this.currentTurn,
+        inSpawnPhase:
+          this.currentTurn <= LEGACY_SIMULATION_RULES.spawnPhaseDurationTicks,
+        winnerPlayerId: this.winnerPlayerId,
+        winnerDeclaredTurn: this.winnerDeclaredTurn,
+      };
     }
 
     let activePlayerCount = 0;
@@ -298,7 +408,16 @@ export class SimulationWorld {
       }
     }
 
+    const topTerritoryControlPercentage =
+      (topTerritoryTileCount / Math.max(1, this.landTiles.size)) * 100;
+
     return {
+      currentTurn: this.currentTurn,
+      inSpawnPhase:
+        this.currentTurn <= LEGACY_SIMULATION_RULES.spawnPhaseDurationTicks,
+      winnerPlayerId: this.winnerPlayerId,
+      winnerDeclaredTurn: this.winnerDeclaredTurn,
+      topTerritoryControlPercentage,
       activePlayerCount,
       eliminatedPlayerCount,
       ownedTileCount,

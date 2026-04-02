@@ -95,6 +95,8 @@ This document tracks the migration from `old_project` into the new Bun + Vite + 
   `tests/intentRuleValidator.test.ts`, `tests/pathfinding.test.ts`, and `tests/serverMessages.test.ts`, wired via `bun run test`.
 - Added deterministic simulation-world domain state:
   land-tile ownership, battle/territory transfer resolution, and player economy snapshots integrated into worker snapshots and HUD.
+- Added turn-lifecycle parity migration in deterministic runtime:
+  per-turn passive economy growth and legacy-style victory checks (post-spawn control threshold / forced time limit) integrated into worker turn processing and surfaced in snapshots/HUD.
 
 ### Pending
 

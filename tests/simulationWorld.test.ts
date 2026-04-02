@@ -46,4 +46,34 @@ describe("SimulationWorld", () => {
     expect(playerA?.donatedTroops).toBe(5_000);
     expect(playerB?.receivedTroops).toBe(5_000);
   });
+
+  test("applies turn lifecycle economy and declares winner after spawn phase", () => {
+    const world = new SimulationWorld();
+    world.initializeTerrain(createTerrain());
+
+    world.spawn("PLYR_A", 0);
+    world.spawn("PLYR_A", 1);
+    world.spawn("PLYR_A", 2);
+    world.spawn("PLYR_A", 3);
+    world.spawn("PLYR_A", 5);
+    world.spawn("PLYR_A", 6);
+    world.spawn("PLYR_A", 7);
+    world.spawn("PLYR_A", 8);
+
+    world.processTurn(301);
+
+    const summary = world.getSummary();
+    const player = world
+      .getPlayerSnapshots()
+      .find((entry) => entry.id === "PLYR_A");
+
+    expect(summary.inSpawnPhase).toBe(false);
+    expect(summary.currentTurn).toBe(301);
+    expect(summary.winnerPlayerId).toBe("PLYR_A");
+    expect(summary.winnerDeclaredTurn).toBe(301);
+    expect(summary.topTerritoryControlPercentage).toBeGreaterThan(80);
+    expect(player).toBeDefined();
+    expect(player?.gold).toBeGreaterThan(60_000);
+    expect(player?.troops).toBeGreaterThan(90_000);
+  });
 });

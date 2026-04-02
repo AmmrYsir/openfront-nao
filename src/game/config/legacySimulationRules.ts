@@ -10,6 +10,11 @@ export interface LegacySimulationRules {
   allianceRequestCooldownTicks: number;
   allianceDurationTicks: number;
   allianceExtensionPromptOffsetTicks: number;
+  spawnPhaseDurationTicks: number;
+  tilesOwnedToWinPercentage: number;
+  forcedWinCheckLimitTicks: number;
+  baseGoldIncomePerTick: number;
+  cityTroopIncreaseCap: number;
 }
 
 // Values mapped from legacy DefaultConfig to preserve behavior during migration.
@@ -25,4 +30,9 @@ export const LEGACY_SIMULATION_RULES: LegacySimulationRules = {
   allianceRequestCooldownTicks: 30 * 10,
   allianceDurationTicks: 300 * 10,
   allianceExtensionPromptOffsetTicks: 30 * 10,
+  spawnPhaseDurationTicks: 300,
+  tilesOwnedToWinPercentage: 80,
+  forcedWinCheckLimitTicks: 170 * 60 * 10,
+  baseGoldIncomePerTick: 100,
+  cityTroopIncreaseCap: 250_000,
 };

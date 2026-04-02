@@ -4,6 +4,7 @@ import { GameSessionStore } from "../state/GameSessionStore";
 export interface TurnQueueSystemOptions {
   maxTurnsPerStep: number;
   applyTurn: (turn: Turn) => void;
+  onTurnProcessed?: (turn: Turn) => void;
 }
 
 export class TurnQueueSystem {
@@ -29,6 +30,7 @@ export class TurnQueueSystem {
       this.store.beginTurn(turn.turnNumber);
       this.options.applyTurn(turn);
       this.store.markTurnProcessed(turn);
+      this.options.onTurnProcessed?.(turn);
       processedTurns += 1;
     }
 
