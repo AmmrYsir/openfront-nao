@@ -27,6 +27,7 @@ import {
   LobbyPageController,
   NewsPageController,
   SettingsPageController,
+  SoloPageController,
 } from "../../ui/pages";
 
 interface AppEvents {
@@ -67,6 +68,7 @@ export function createGameApp(host: HTMLElement): GameApp {
     typeof window !== "undefined" ? new MultiTabSessionGuard() : null;
   const runtimeServerConfig = resolveBrowserRuntimeServerConfig();
   let lobbyPageController: LobbyPageController | null = null;
+  let soloAutoQueueTimer: ReturnType<typeof setInterval> | null = null;
   const rankedMatchmakingSession = new RankedMatchmakingSession({
     config: runtimeServerConfig,
     authClient,
@@ -93,11 +95,45 @@ export function createGameApp(host: HTMLElement): GameApp {
   let nextTurnNumber = 1;
   let disposed = false;
 
+  const queueSampleTurn = async (): Promise<void> => {
+    uiRoot.setStatus("Queueing local sample turn...");
+    if (!workerClient.isInitialized()) {
+      await workerClient.initialize();
+    }
+
+    const turn = createSampleTurn(nextTurnNumber, DEBUG_CLIENT_ID);
+    nextTurnNumber += 1;
+    await workerClient.enqueueTurn(turn);
+    events.emit("turn:queued", turn);
+    uiRoot.setStatus(`Queued local sample turn ${turn.turnNumber}.`);
+  };
+
   const accountPageController = new AccountPageController({
     host: uiRoot.getAccountPanelHost(),
     authClient,
     apiClient,
     onStatus: (status) => uiRoot.setAccountStatus(status),
+  });
+  const soloPageController = new SoloPageController({
+    host: uiRoot.getSoloPanelHost(),
+    onQueueTurn: queueSampleTurn,
+    onStartAutoQueue: async () => {
+      await ensureWorkerInitialized();
+      if (soloAutoQueueTimer !== null) {
+        return;
+      }
+      soloAutoQueueTimer = setInterval(() => {
+        void queueSampleTurn();
+      }, 1200);
+    },
+    onStopAutoQueue: () => {
+      if (soloAutoQueueTimer === null) {
+        return;
+      }
+      clearInterval(soloAutoQueueTimer);
+      soloAutoQueueTimer = null;
+    },
+    onStatus: (status) => uiRoot.setSoloStatus(status),
   });
   lobbyPageController = new LobbyPageController({
     host: uiRoot.getLobbyPanelHost(),
@@ -129,19 +165,6 @@ export function createGameApp(host: HTMLElement): GameApp {
     host: uiRoot.getHelpPanelHost(),
     onStatus: (status) => uiRoot.setHelpStatus(status),
   });
-
-  const queueSampleTurn = async (): Promise<void> => {
-    uiRoot.setStatus("Queueing local sample turn...");
-    if (!workerClient.isInitialized()) {
-      await workerClient.initialize();
-    }
-
-    const turn = createSampleTurn(nextTurnNumber, DEBUG_CLIENT_ID);
-    nextTurnNumber += 1;
-    await workerClient.enqueueTurn(turn);
-    events.emit("turn:queued", turn);
-    uiRoot.setStatus(`Queued local sample turn ${turn.turnNumber}.`);
-  };
 
   const hud = new Hud(uiRoot.getHudHost(), () => {
     events.emit("debug:queue-turn", undefined);
@@ -209,6 +232,7 @@ export function createGameApp(host: HTMLElement): GameApp {
   }
 
   async function hydrateClientServices(): Promise<void> {
+    await soloPageController.hydrate();
     await accountPageController.hydrate();
     await leaderboardPageController.hydrate();
     if (lobbyPageController) {
@@ -232,6 +256,7 @@ export function createGameApp(host: HTMLElement): GameApp {
       void ensureWorkerInitialized().then(() => workerClient.getSnapshot());
       void hydrateClientServices().catch(() => {
         uiRoot.setAccountStatus("Account service error.");
+        uiRoot.setSoloStatus("Solo runtime service error.");
         uiRoot.setLobbyStatus("Lobby service error.");
         uiRoot.setLeaderboardStatus("Leaderboard service error.");
         uiRoot.setSettingsStatus("Settings service error.");
@@ -246,7 +271,12 @@ export function createGameApp(host: HTMLElement): GameApp {
       disposed = true;
       multiTabGuard?.stopMonitoring();
       rankedMatchmakingSession.stop();
+      if (soloAutoQueueTimer !== null) {
+        clearInterval(soloAutoQueueTimer);
+        soloAutoQueueTimer = null;
+      }
       lobbySocket.stop();
+      soloPageController.dispose();
       accountPageController.dispose();
       lobbyPageController?.dispose();
       leaderboardPageController.dispose();

@@ -101,5 +101,6 @@ This plan migrates the remaining `old_project` gameplay/frontend stack into the 
 
 ## Current Status
 
-- Phase 0: in progress
-- Phase 1-5: pending
+- Phase 0: completed
+- Phase 1: in progress
+- Phase 2-5: pending

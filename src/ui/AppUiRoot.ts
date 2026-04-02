@@ -27,6 +27,7 @@ interface PagePanelDefinition {
 
 const NAV_ITEMS: ReadonlyArray<NavItemDefinition> = [
   { pageId: "page-play", label: "Play" },
+  { pageId: "page-solo", label: "Solo" },
   { pageId: "page-account", label: "Account" },
   { pageId: "page-lobby", label: "Lobby" },
   { pageId: "page-leaderboard", label: "Leaderboard" },
@@ -36,6 +37,12 @@ const NAV_ITEMS: ReadonlyArray<NavItemDefinition> = [
 ];
 
 const CONTENT_PANELS: ReadonlyArray<PagePanelDefinition> = [
+  {
+    pageId: "page-solo",
+    statusId: "solo-status",
+    statusLabel: "Solo status",
+    hostId: "solo-panel-host",
+  },
   {
     pageId: "page-account",
     statusId: "account-status",
@@ -104,12 +111,14 @@ export class AppUiRoot {
   private readonly root: HTMLElement;
   private readonly hudMount: HTMLElement;
   private readonly statusValue: HTMLElement;
+  private readonly soloStatusValue: HTMLElement | null;
   private readonly accountStatusValue: HTMLElement | null;
   private readonly lobbyStatusValue: HTMLElement | null;
   private readonly leaderboardStatusValue: HTMLElement | null;
   private readonly settingsStatusValue: HTMLElement | null;
   private readonly newsStatusValue: HTMLElement | null;
   private readonly helpStatusValue: HTMLElement | null;
+  private readonly soloPanelHost: HTMLElement | null;
   private readonly accountPanelHost: HTMLElement | null;
   private readonly lobbyPanelHost: HTMLElement | null;
   private readonly leaderboardPanelHost: HTMLElement | null;
@@ -209,6 +218,7 @@ export class AppUiRoot {
 
     const hudMount = host.querySelector<HTMLElement>("#hud-mount");
     const statusValue = host.querySelector<HTMLElement>("#transport-status");
+    const soloStatusValue = host.querySelector<HTMLElement>("#solo-status");
     const accountStatusValue = host.querySelector<HTMLElement>("#account-status");
     const lobbyStatusValue = host.querySelector<HTMLElement>("#lobby-status");
     const leaderboardStatusValue =
@@ -217,6 +227,7 @@ export class AppUiRoot {
       host.querySelector<HTMLElement>("#settings-status");
     const newsStatusValue = host.querySelector<HTMLElement>("#news-status");
     const helpStatusValue = host.querySelector<HTMLElement>("#help-status");
+    const soloPanelHost = host.querySelector<HTMLElement>("#solo-panel-host");
     const accountPanelHost =
       host.querySelector<HTMLElement>("#account-panel-host");
     const lobbyPanelHost = host.querySelector<HTMLElement>("#lobby-panel-host");
@@ -244,12 +255,14 @@ export class AppUiRoot {
 
     this.hudMount = hudMount;
     this.statusValue = statusValue;
+    this.soloStatusValue = soloStatusValue;
     this.accountStatusValue = accountStatusValue;
     this.lobbyStatusValue = lobbyStatusValue;
     this.leaderboardStatusValue = leaderboardStatusValue;
     this.settingsStatusValue = settingsStatusValue;
     this.newsStatusValue = newsStatusValue;
     this.helpStatusValue = helpStatusValue;
+    this.soloPanelHost = soloPanelHost;
     this.accountPanelHost = accountPanelHost;
     this.lobbyPanelHost = lobbyPanelHost;
     this.leaderboardPanelHost = leaderboardPanelHost;
@@ -310,6 +323,13 @@ export class AppUiRoot {
     this.accountStatusValue.textContent = text;
   }
 
+  setSoloStatus(text: string): void {
+    if (!this.soloStatusValue) {
+      return;
+    }
+    this.soloStatusValue.textContent = text;
+  }
+
   setLobbyStatus(text: string): void {
     if (!this.lobbyStatusValue) {
       return;
@@ -343,6 +363,13 @@ export class AppUiRoot {
       return;
     }
     this.helpStatusValue.textContent = text;
+  }
+
+  getSoloPanelHost(): HTMLElement {
+    if (!this.soloPanelHost) {
+      throw new Error("Missing solo panel host.");
+    }
+    return this.soloPanelHost;
   }
 
   getAccountPanelHost(): HTMLElement {

@@ -128,6 +128,8 @@ This document tracks the migration from `old_project` into the new Bun + Vite + 
   `MultiTabSessionGuard` now protects against multi-tab conflicts with explicit lifecycle wiring, and `LocalGameHistoryStore` centralizes local replay history persistence.
 - Migrated help/news support surfaces into modular pages:
   the new UI shell now includes dedicated News + Help pages with migrated changelog and troubleshooting/keybind guidance, replacing modal-only legacy coupling.
+- Added phase-1 solo runtime control surface:
+  new `SoloPageController` provides start/stop auto-turn queue and manual turn queueing against the deterministic worker, enabling local solo runtime progression while full old singleplayer parity is migrated.
 
 ### Pending
 
