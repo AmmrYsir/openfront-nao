@@ -70,6 +70,9 @@ function formatSimulationPlayers(snapshot: GameSessionSnapshot): string {
         `troops:${renderNumber(player.troops)}`,
         `gold:${renderNumber(player.gold)}`,
         `built:${player.builtUnitTotal}`,
+        `upg:${player.upgradedUnits}`,
+        `del:${player.deletedUnits}`,
+        `wmv:${player.movedWarships}`,
         `kicked:${player.kicked ? "y" : "n"}`,
         `disc:${player.disconnected ? "y" : "n"}`,
       ].join(" | ");
@@ -141,6 +144,10 @@ export class Hud {
   private readonly simTurnValue: HTMLElement;
   private readonly simPhaseValue: HTMLElement;
   private readonly simWinnerValue: HTMLElement;
+  private readonly simActiveUnitsValue: HTMLElement;
+  private readonly simDeletedUnitsValue: HTMLElement;
+  private readonly simUpgradedUnitsValue: HTMLElement;
+  private readonly simWarshipMovesValue: HTMLElement;
   private readonly projectedPlayersView: HTMLElement;
   private readonly projectedAlliancesView: HTMLElement;
   private readonly projectedPendingRequestsView: HTMLElement;
@@ -227,6 +234,10 @@ export class Hud {
             <div><dt>Sim Turn</dt><dd id="hud-sim-turn">0</dd></div>
             <div><dt>Sim Phase</dt><dd id="hud-sim-phase">spawn</dd></div>
             <div><dt>Sim Winner</dt><dd id="hud-sim-winner">n/a</dd></div>
+            <div><dt>Sim Active Units</dt><dd id="hud-sim-active-units">0</dd></div>
+            <div><dt>Sim Deleted Units</dt><dd id="hud-sim-deleted-units">0</dd></div>
+            <div><dt>Sim Upgraded Units</dt><dd id="hud-sim-upgraded-units">0</dd></div>
+            <div><dt>Sim Warship Moves</dt><dd id="hud-sim-warship-moves">0</dd></div>
           </dl>
           <h2>Projected Players</h2>
           <pre id="hud-projected-players-view" class="hud-projection"></pre>
@@ -385,6 +396,18 @@ export class Hud {
     const simTurnValue = host.querySelector<HTMLElement>("#hud-sim-turn");
     const simPhaseValue = host.querySelector<HTMLElement>("#hud-sim-phase");
     const simWinnerValue = host.querySelector<HTMLElement>("#hud-sim-winner");
+    const simActiveUnitsValue = host.querySelector<HTMLElement>(
+      "#hud-sim-active-units",
+    );
+    const simDeletedUnitsValue = host.querySelector<HTMLElement>(
+      "#hud-sim-deleted-units",
+    );
+    const simUpgradedUnitsValue = host.querySelector<HTMLElement>(
+      "#hud-sim-upgraded-units",
+    );
+    const simWarshipMovesValue = host.querySelector<HTMLElement>(
+      "#hud-sim-warship-moves",
+    );
     const projectedPlayersView = host.querySelector<HTMLElement>(
       "#hud-projected-players-view",
     );
@@ -467,6 +490,10 @@ export class Hud {
       !simTurnValue ||
       !simPhaseValue ||
       !simWinnerValue ||
+      !simActiveUnitsValue ||
+      !simDeletedUnitsValue ||
+      !simUpgradedUnitsValue ||
+      !simWarshipMovesValue ||
       !projectedPlayersView ||
       !projectedAlliancesView ||
       !projectedPendingRequestsView ||
@@ -540,6 +567,10 @@ export class Hud {
     this.simTurnValue = simTurnValue;
     this.simPhaseValue = simPhaseValue;
     this.simWinnerValue = simWinnerValue;
+    this.simActiveUnitsValue = simActiveUnitsValue;
+    this.simDeletedUnitsValue = simDeletedUnitsValue;
+    this.simUpgradedUnitsValue = simUpgradedUnitsValue;
+    this.simWarshipMovesValue = simWarshipMovesValue;
     this.projectedPlayersView = projectedPlayersView;
     this.projectedAlliancesView = projectedAlliancesView;
     this.projectedPendingRequestsView = projectedPendingRequestsView;
@@ -713,6 +744,18 @@ export class Hud {
       snapshot.simulationWinnerPlayerId === null
         ? "n/a"
         : `${snapshot.simulationWinnerPlayerId} @ turn ${renderNumber(snapshot.simulationWinnerDeclaredTurn ?? 0)}`;
+    this.simActiveUnitsValue.textContent = renderNumber(
+      snapshot.simulationActiveUnitCount,
+    );
+    this.simDeletedUnitsValue.textContent = renderNumber(
+      snapshot.simulationDeletedUnitCount,
+    );
+    this.simUpgradedUnitsValue.textContent = renderNumber(
+      snapshot.simulationUpgradedUnitCount,
+    );
+    this.simWarshipMovesValue.textContent = renderNumber(
+      snapshot.simulationWarshipMoveCount,
+    );
     this.projectedPlayersView.textContent = formatProjectedPlayers(snapshot);
     this.projectedAlliancesView.textContent = formatProjectedAlliances(snapshot);
     this.projectedPendingRequestsView.textContent =

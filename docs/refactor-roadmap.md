@@ -97,6 +97,8 @@ This document tracks the migration from `old_project` into the new Bun + Vite + 
   land-tile ownership, battle/territory transfer resolution, and player economy snapshots integrated into worker snapshots and HUD.
 - Added turn-lifecycle parity migration in deterministic runtime:
   per-turn passive economy growth and legacy-style victory checks (post-spawn control threshold / forced time limit) integrated into worker turn processing and surfaced in snapshots/HUD.
+- Added dedicated unit lifecycle state migration:
+  `src/game/entities/UnitRegistry.ts` now tracks deterministic build/upgrade/delete/move flows and exposes typed unit metrics in worker snapshots/HUD.
 
 ### Pending
 

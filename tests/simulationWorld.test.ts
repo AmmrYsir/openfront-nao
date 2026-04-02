@@ -76,4 +76,31 @@ describe("SimulationWorld", () => {
     expect(player?.gold).toBeGreaterThan(60_000);
     expect(player?.troops).toBeGreaterThan(90_000);
   });
+
+  test("tracks unit lifecycle for build, upgrade, delete, and warship movement", () => {
+    const world = new SimulationWorld();
+    world.initializeTerrain(createTerrain());
+    world.spawn("PLYR_A", 0);
+
+    world.buildUnit("PLYR_A", "City");
+    world.buildUnit("PLYR_A", "Warship");
+    world.moveWarship("PLYR_A", 12, 2);
+    world.upgradeStructure("PLYR_A", 12, "Warship");
+    world.deleteUnit("PLYR_A", 12);
+
+    const summary = world.getSummary();
+    const player = world
+      .getPlayerSnapshots()
+      .find((entry) => entry.id === "PLYR_A");
+
+    expect(summary.activeUnitCount).toBe(2);
+    expect(summary.deletedUnitCount).toBe(1);
+    expect(summary.upgradedUnitCount).toBe(1);
+    expect(summary.warshipMoveCount).toBe(1);
+    expect(player).toBeDefined();
+    expect(player?.builtUnitTotal).toBe(2);
+    expect(player?.upgradedUnits).toBe(1);
+    expect(player?.deletedUnits).toBe(1);
+    expect(player?.movedWarships).toBe(1);
+  });
 });

@@ -12,10 +12,10 @@ export const constructionHandlers: Pick<HandlerMap, ConstructionHandlerKeys> = {
   },
   upgrade_structure: ({ store }, intent) => {
     store.recordConstructionAction();
-    store.recordUpgradeStructure(intent.clientID);
+    store.recordUpgradeStructure(intent.clientID, intent.unitId, intent.unit);
   },
   delete_unit: ({ store }, intent) => {
     store.recordConstructionAction();
-    store.recordDeleteUnit(intent.clientID);
+    store.recordDeleteUnit(intent.clientID, intent.unitId);
   },
 };

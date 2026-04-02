@@ -67,6 +67,10 @@ export interface GameSessionSnapshot {
   simulationInSpawnPhase: boolean;
   simulationWinnerPlayerId: string | null;
   simulationWinnerDeclaredTurn: number | null;
+  simulationActiveUnitCount: number;
+  simulationDeletedUnitCount: number;
+  simulationUpgradedUnitCount: number;
+  simulationWarshipMoveCount: number;
   simulationPlayers: SimulationPlayerSnapshot[];
   mapId: string | null;
   mapSize: string | null;
@@ -300,16 +304,23 @@ export class GameSessionStore {
     this.projectedWorld.recordBreakAlliance(playerA, playerB);
   }
 
-  recordUpgradeStructure(playerID: string): void {
+  recordUpgradeStructure(
+    playerID: string,
+    unitId: number,
+    unitType: UnitType,
+  ): void {
     this.projectedWorld.recordUpgradeStructure(playerID);
+    this.simulationWorld.upgradeStructure(playerID, unitId, unitType);
   }
 
-  recordDeleteUnit(playerID: string): void {
+  recordDeleteUnit(playerID: string, unitId: number): void {
     this.projectedWorld.recordDeleteUnit(playerID);
+    this.simulationWorld.deleteUnit(playerID, unitId);
   }
 
-  recordMoveWarship(playerID: string): void {
+  recordMoveWarship(playerID: string, unitId: number, tile: number): void {
     this.projectedWorld.recordMoveWarship(playerID);
+    this.simulationWorld.moveWarship(playerID, unitId, tile);
   }
 
   recordKickPlayer(playerID: string): void {
@@ -463,6 +474,10 @@ export class GameSessionStore {
       simulationInSpawnPhase: simulationSummary.inSpawnPhase,
       simulationWinnerPlayerId: simulationSummary.winnerPlayerId,
       simulationWinnerDeclaredTurn: simulationSummary.winnerDeclaredTurn,
+      simulationActiveUnitCount: simulationSummary.activeUnitCount,
+      simulationDeletedUnitCount: simulationSummary.deletedUnitCount,
+      simulationUpgradedUnitCount: simulationSummary.upgradedUnitCount,
+      simulationWarshipMoveCount: simulationSummary.warshipMoveCount,
       simulationPlayers,
       mapId: this.mapId,
       mapSize: this.mapSize,

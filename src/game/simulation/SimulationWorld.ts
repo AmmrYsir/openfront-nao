@@ -1,5 +1,6 @@
 import { LEGACY_SIMULATION_RULES } from "../config/legacySimulationRules";
 import type { UnitType } from "../contracts/turn";
+import { UnitRegistry } from "../entities/UnitRegistry";
 import { isLandTerrainByte } from "../pathfinding/TerrainBits";
 
 interface SimulationPlayerState {
@@ -12,6 +13,9 @@ interface SimulationPlayerState {
   donatedTroops: number;
   receivedGold: number;
   receivedTroops: number;
+  upgradedUnits: number;
+  deletedUnits: number;
+  movedWarships: number;
   disconnected: boolean;
   kicked: boolean;
 }
@@ -26,6 +30,9 @@ export interface SimulationPlayerSnapshot {
   donatedTroops: number;
   receivedGold: number;
   receivedTroops: number;
+  upgradedUnits: number;
+  deletedUnits: number;
+  movedWarships: number;
   disconnected: boolean;
   kicked: boolean;
 }
@@ -36,6 +43,10 @@ export interface SimulationWorldSummary {
   winnerPlayerId: string | null;
   winnerDeclaredTurn: number | null;
   topTerritoryControlPercentage: number;
+  activeUnitCount: number;
+  deletedUnitCount: number;
+  upgradedUnitCount: number;
+  warshipMoveCount: number;
   activePlayerCount: number;
   eliminatedPlayerCount: number;
   ownedTileCount: number;
@@ -77,6 +88,10 @@ const EMPTY_SUMMARY: SimulationWorldSummary = {
   winnerPlayerId: null,
   winnerDeclaredTurn: null,
   topTerritoryControlPercentage: 0,
+  activeUnitCount: 0,
+  deletedUnitCount: 0,
+  upgradedUnitCount: 0,
+  warshipMoveCount: 0,
   activePlayerCount: 0,
   eliminatedPlayerCount: 0,
   ownedTileCount: 0,
@@ -111,6 +126,7 @@ function calculateTroopIncrease(player: SimulationPlayerState): number {
 
 export class SimulationWorld {
   private readonly players = new Map<string, SimulationPlayerState>();
+  private readonly unitRegistry = new UnitRegistry();
   private readonly landTiles = new Set<number>();
   private readonly tileOwner = new Map<number, string>();
   private battlesResolved = 0;
@@ -125,6 +141,7 @@ export class SimulationWorld {
     this.currentTurn = 0;
     this.winnerPlayerId = null;
     this.winnerDeclaredTurn = null;
+    this.unitRegistry.reset();
 
     for (const player of this.players.values()) {
       player.tiles.clear();
@@ -170,6 +187,9 @@ export class SimulationWorld {
       donatedTroops: 0,
       receivedGold: 0,
       receivedTroops: 0,
+      upgradedUnits: 0,
+      deletedUnits: 0,
+      movedWarships: 0,
       disconnected: false,
       kicked: false,
     };
@@ -291,6 +311,26 @@ export class SimulationWorld {
     const player = this.ensurePlayer(playerId);
     player.builtUnits[unitType] += 1;
     player.gold = Math.max(0, player.gold - BUILD_COST[unitType]);
+    const tile = this.pickOwnedTile(player) ?? -1;
+    this.unitRegistry.createUnit(playerId, unitType, tile);
+  }
+
+  upgradeStructure(playerId: string, unitId: number, unitType: UnitType): void {
+    const player = this.ensurePlayer(playerId);
+    player.upgradedUnits += 1;
+    this.unitRegistry.upgradeUnit(playerId, unitId, unitType);
+  }
+
+  deleteUnit(playerId: string, unitId: number): void {
+    const player = this.ensurePlayer(playerId);
+    player.deletedUnits += 1;
+    this.unitRegistry.deleteUnit(playerId, unitId);
+  }
+
+  moveWarship(playerId: string, unitId: number, tile: number): void {
+    const player = this.ensurePlayer(playerId);
+    player.movedWarships += 1;
+    this.unitRegistry.moveWarship(playerId, unitId, tile);
   }
 
   kickPlayer(playerId: string): void {
@@ -369,6 +409,8 @@ export class SimulationWorld {
   }
 
   getSummary(): SimulationWorldSummary {
+    const unitSummary = this.unitRegistry.getSummary();
+
     if (this.players.size === 0 || this.landTiles.size === 0) {
       return {
         ...EMPTY_SUMMARY,
@@ -377,6 +419,10 @@ export class SimulationWorld {
           this.currentTurn <= LEGACY_SIMULATION_RULES.spawnPhaseDurationTicks,
         winnerPlayerId: this.winnerPlayerId,
         winnerDeclaredTurn: this.winnerDeclaredTurn,
+        activeUnitCount: unitSummary.activeUnitCount,
+        deletedUnitCount: unitSummary.deletedUnitCount,
+        upgradedUnitCount: unitSummary.upgradedUnitCount,
+        warshipMoveCount: unitSummary.warshipMoveCount,
       };
     }
 
@@ -418,6 +464,10 @@ export class SimulationWorld {
       winnerPlayerId: this.winnerPlayerId,
       winnerDeclaredTurn: this.winnerDeclaredTurn,
       topTerritoryControlPercentage,
+      activeUnitCount: unitSummary.activeUnitCount,
+      deletedUnitCount: unitSummary.deletedUnitCount,
+      upgradedUnitCount: unitSummary.upgradedUnitCount,
+      warshipMoveCount: unitSummary.warshipMoveCount,
       activePlayerCount,
       eliminatedPlayerCount,
       ownedTileCount,
@@ -448,6 +498,9 @@ export class SimulationWorld {
         donatedTroops: player.donatedTroops,
         receivedGold: player.receivedGold,
         receivedTroops: player.receivedTroops,
+        upgradedUnits: player.upgradedUnits,
+        deletedUnits: player.deletedUnits,
+        movedWarships: player.movedWarships,
         disconnected: player.disconnected,
         kicked: player.kicked,
       });
